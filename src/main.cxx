@@ -15,44 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // Contact the author via https://github.com/guysherman
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
-#include "linmath.h"
-
-
+#include <stdio.h>
 #include <iostream>
-#include <stdlib.h>
-
-
-static const struct
-{
-	float x, y;
-	float r, g, b;
-} vertices[3] =
-{
-	{ -0.6f, -0.4f, 1.f, 0.f, 0.f },
-	{  0.6f, -0.4f, 0.f, 1.f, 0.f },
-	{   0.f,  0.6f, 0.f, 0.f, 1.f }
-};
-
-static const char* vertex_shader_text =
-"uniform mat4 MVP;\n"
-"attribute vec3 vCol;\n"
-"attribute vec2 vPos;\n"
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-"    color = vCol;\n"
-"}\n";
-static const char* fragment_shader_text =
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_FragColor = vec4(color, 1.0);\n"
-"}\n";
+#include "linmath.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -65,82 +32,153 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-int main(int argc, char** argv)
-{
-	GLFWwindow* window;
-	GLuint vertex_buffer, vertex_shader, fragment_shader, program;
-	GLint mvp_location, vpos_location, vcol_location;
+
+int main() {
+	GLFWwindow *window = NULL;
+	const GLubyte *renderer;
+	const GLubyte *version;
+	GLuint vao;
+	GLuint vbo;
+
+
+	GLfloat verts[] = { 0.0f,       0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+						 0.0f,    1024.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+						 1280.0f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+	/* these are the strings of code for the shaders
+	the vertex shader positions each vertex point */
+	const char *srcVs = "#version 410\n"
+								"layout (location = 0) in vec3 vp;"
+								"layout (location = 1) in vec3 vc;"
+								"uniform mat4 matrix;"
+								"out vec3 color;"
+								"void main () {"
+								"	gl_Position = matrix * vec4 (vp, 1.0);"
+								"	color = vc;"
+								"}";
+	/* the fragment shader colours each fragment (pixel-sized area of the
+	triangle) */
+	const char *srcFs = "#version 410\n"
+								"in vec3 color;"
+								"out vec4 frag_colour;"
+								"void main () {"
+								"	frag_colour = vec4 (color, 1.0);"
+								"}";
+	/* GL shader objects for vertex and fragment shader [components] */
+	GLuint vs, fs;
+	/* GL shader programme object [combined, to link] */
+	GLuint shader_programme;
 
 	glfwSetErrorCallback(error_callback);
 
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
+	/* start GL context and O/S window using the GLFW helper library */
+	if ( !glfwInit() ) {
+		fprintf( stderr, "ERROR: could not start GLFW3\n" );
+		return 1;
+	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#ifndef #WIN32
+	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
+	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 2 );
+	glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
+	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
+#endif
 
-	window = glfwCreateWindow(1280, 1024, "Darkroom", NULL, NULL);
-	if (!window)
-	{
+	window = glfwCreateWindow( 1280, 1024, "Darkroom", NULL, NULL );
+	if ( !window ) {
+		fprintf( stderr, "ERROR: could not open window with GLFW3\n" );
 		glfwTerminate();
-		exit(EXIT_FAILURE);
+		return 1;
 	}
 
 	glfwSetKeyCallback(window, key_callback);
 
-	glfwMakeContextCurrent(window);
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		/* Problem: glewInit failed, something is seriously wrong. */
-		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+	glfwMakeContextCurrent( window );
 
+	glewExperimental = GL_TRUE;
+	glewInit();
+
+	/* get version info */
+	renderer = glGetString( GL_RENDERER ); /* get renderer string */
+	version = glGetString( GL_VERSION );	 /* version as a string */
+	printf( "Renderer: %s\n", renderer );
+	printf( "OpenGL version supported %s\n", version );
+
+
+	glEnable( GL_DEPTH_TEST );
+
+	glDepthFunc( GL_LESS );
+
+	glGenBuffers( 1, &vbo );
+	glBindBuffer( GL_ARRAY_BUFFER, vbo );
+	glBufferData( GL_ARRAY_BUFFER, 18 * sizeof( GLfloat ), verts, GL_STATIC_DRAW );
+
+	glGenVertexArrays( 1, &vao );
+	glBindVertexArray( vao );
+
+	glEnableVertexAttribArray( 0 );
+	glEnableVertexAttribArray( 1 );
+
+	glBindBuffer( GL_ARRAY_BUFFER, vbo );
+
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL );
+	glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(sizeof(float) * 3) );
+
+	vs = glCreateShader( GL_VERTEX_SHADER );
+	glShaderSource( vs, 1, &srcVs, NULL );
+	glCompileShader( vs );
+
+	fs = glCreateShader( GL_FRAGMENT_SHADER );
+	glShaderSource( fs, 1, &srcFs, NULL );
+	glCompileShader( fs );
+
+	shader_programme = glCreateProgram();
+	glAttachShader( shader_programme, fs );
+	glAttachShader( shader_programme, vs );
+	glLinkProgram( shader_programme );
+
+	GLfloat matrix[] = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.0f, 0.0f, 1.0f
+	};
+
+	int matrix_location = glGetUniformLocation (shader_programme, "matrix");
+	glUseProgram (shader_programme);
+	glUniformMatrix4fv (matrix_location, 1, GL_FALSE, matrix);
+
+
+
+	GLenum err = 0;
+	while ((err = glGetError()) != GL_NO_ERROR) {
+		std::cerr << "OpenGL error: " << err << std::endl;
 	}
 
-	glfwSwapInterval(1);
-	// NOTE: OpenGL error checks have been omitted for brevity
-	glGenBuffers(1, &vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-	glCompileShader(vertex_shader);
-	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-	glCompileShader(fragment_shader);
-	program = glCreateProgram();
-	glAttachShader(program, vertex_shader);
-	glAttachShader(program, fragment_shader);
-	glLinkProgram(program);
-	mvp_location = glGetUniformLocation(program, "MVP");
-	vpos_location = glGetAttribLocation(program, "vPos");
-	vcol_location = glGetAttribLocation(program, "vCol");
-	glEnableVertexAttribArray(vpos_location);
-	glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-						  sizeof(float) * 5, (void*) 0);
-	glEnableVertexAttribArray(vcol_location);
-	glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-						  sizeof(float) * 5, (void*) (sizeof(float) * 2));
-	while (!glfwWindowShouldClose(window))
-	{
+
+	while ( !glfwWindowShouldClose( window ) ) {
+
 		float ratio;
 		int width, height;
 		mat4x4 m, p, mvp;
 		glfwGetFramebufferSize(window, &width, &height);
 		ratio = width / (float) height;
+
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glUseProgram( shader_programme );
+
+
 		mat4x4_identity(m);
-		mat4x4_rotate_Z(m, m, (float) glfwGetTime());
-		mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+		mat4x4_ortho(p, 0.0, width, 0.0f, height, 0.0f, 1.0f);
 		mat4x4_mul(mvp, p, m);
-		glUseProgram(program);
-		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glfwSwapBuffers(window);
+		glUniformMatrix4fv (matrix_location, 1, GL_FALSE, (const GLfloat*) mvp);
+		glBindVertexArray( vao );
+
+		glDrawArrays( GL_TRIANGLES, 0, 3 );
 		glfwPollEvents();
+		glfwSwapBuffers( window );
 	}
-	glfwDestroyWindow(window);
+
 	glfwTerminate();
-	exit(EXIT_SUCCESS);
+	return 0;
 }
