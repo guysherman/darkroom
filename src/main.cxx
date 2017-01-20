@@ -41,9 +41,12 @@ int main() {
 	GLuint vbo;
 
 
-	GLfloat verts[] = { 0.0f,       0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-						 0.0f,    1024.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-						 1280.0f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat verts[] = { 0.0f,       0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+						0.0f,    1024.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+						1280.0f,    0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+						0.0f,    1024.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+ 						1280.0f, 1024.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+ 						1280.0f,    0.0f, 0.0f, 1.0f, 1.0f, 1.0f};
 	/* these are the strings of code for the shaders
 	the vertex shader positions each vertex point */
 	const char *srcVs = "#version 410\n"
@@ -76,7 +79,7 @@ int main() {
 		return 1;
 	}
 
-#ifndef #WIN32
+#ifndef WIN32
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 2 );
 	glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
@@ -110,7 +113,7 @@ int main() {
 
 	glGenBuffers( 1, &vbo );
 	glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	glBufferData( GL_ARRAY_BUFFER, 18 * sizeof( GLfloat ), verts, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, 36 * sizeof( GLfloat ), verts, GL_STATIC_DRAW );
 
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao );
@@ -174,7 +177,7 @@ int main() {
 		glUniformMatrix4fv (matrix_location, 1, GL_FALSE, (const GLfloat*) mvp);
 		glBindVertexArray( vao );
 
-		glDrawArrays( GL_TRIANGLES, 0, 3 );
+		glDrawArrays( GL_TRIANGLES, 0, 6 );
 		glfwPollEvents();
 		glfwSwapBuffers( window );
 	}
