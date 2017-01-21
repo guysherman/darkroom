@@ -36,7 +36,7 @@ def configure(conf):
 	conf.setenv('main', env)
 	conf.load('compiler_cxx')
 	conf.load('cppcheck')
-	conf.env.CXXFLAGS = ['-Wall', '-ansi', '-g']
+	conf.env.CXXFLAGS = ['-Wall', '-g', '-std=c++11']
 	conf.check_cfg(package='glfw3', uselib_store='GLFW', args=['--cflags', '--libs'])
 	conf.check_cfg(package='glew', uselib_store='GLEW', args=['--cflags', '--libs'])
 

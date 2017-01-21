@@ -19,7 +19,10 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <iostream>
+#include <memory>
 #include "linmath.h"
+#include "Canvas.h"
+#include "CanvasView.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -51,20 +54,17 @@ int main() {
 	the vertex shader positions each vertex point */
 	const char *srcVs = "#version 410\n"
 								"layout (location = 0) in vec3 vp;"
-								"layout (location = 1) in vec3 vc;"
+								"layout (location = 1) in vec2 tc;"
 								"uniform mat4 matrix;"
-								"out vec3 color;"
 								"void main () {"
 								"	gl_Position = matrix * vec4 (vp, 1.0);"
-								"	color = vc;"
 								"}";
 	/* the fragment shader colours each fragment (pixel-sized area of the
 	triangle) */
 	const char *srcFs = "#version 410\n"
-								"in vec3 color;"
 								"out vec4 frag_colour;"
 								"void main () {"
-								"	frag_colour = vec4 (color, 1.0);"
+								"	frag_colour = vec4 (1.0, 1.0, 1.0, 1.0);"
 								"}";
 	/* GL shader objects for vertex and fragment shader [components] */
 	GLuint vs, fs;
@@ -106,6 +106,11 @@ int main() {
 	printf( "Renderer: %s\n", renderer );
 	printf( "OpenGL version supported %s\n", version );
 
+	std::shared_ptr<darkroom::Canvas> canvas = std::shared_ptr<darkroom::Canvas>(
+		new darkroom::Canvas(1280.0f, 1024.0f));
+	darkroom::CanvasView canvasView(canvas, 1280.0f, 1024.0f);
+
+	float* vertices = canvas->GetVertices();
 
 	glEnable( GL_DEPTH_TEST );
 
@@ -113,7 +118,7 @@ int main() {
 
 	glGenBuffers( 1, &vbo );
 	glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	glBufferData( GL_ARRAY_BUFFER, 36 * sizeof( GLfloat ), verts, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, 36 * sizeof( GLfloat ), vertices, GL_STATIC_DRAW );
 
 	glGenVertexArrays( 1, &vao );
 	glBindVertexArray( vao );
@@ -123,8 +128,8 @@ int main() {
 
 	glBindBuffer( GL_ARRAY_BUFFER, vbo );
 
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL );
-	glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(sizeof(float) * 3) );
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL );
+	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(sizeof(float) * 2) );
 
 	vs = glCreateShader( GL_VERTEX_SHADER );
 	glShaderSource( vs, 1, &srcVs, NULL );
@@ -139,16 +144,13 @@ int main() {
 	glAttachShader( shader_programme, vs );
 	glLinkProgram( shader_programme );
 
-	GLfloat matrix[] = {
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, 0.0f, 0.0f, 1.0f
-	};
+
+
+	mat4x4& matrix = canvasView.GetProjectionMatrix();
 
 	int matrix_location = glGetUniformLocation (shader_programme, "matrix");
 	glUseProgram (shader_programme);
-	glUniformMatrix4fv (matrix_location, 1, GL_FALSE, matrix);
+	glUniformMatrix4fv (matrix_location, 1, GL_FALSE, (GLfloat *) matrix);
 
 
 
@@ -162,17 +164,17 @@ int main() {
 
 		float ratio;
 		int width, height;
-		mat4x4 m, p, mvp;
+		mat4x4 m, mvp;
 		glfwGetFramebufferSize(window, &width, &height);
+		canvasView.SetScreenSize(width, height);
 		ratio = width / (float) height;
 
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glViewport(0, 0, width, height);
 		glUseProgram( shader_programme );
 
-
+		mat4x4 &p = canvasView.GetProjectionMatrix();
 		mat4x4_identity(m);
-		mat4x4_ortho(p, 0.0, width, 0.0f, height, 0.0f, 1.0f);
 		mat4x4_mul(mvp, p, m);
 		glUniformMatrix4fv (matrix_location, 1, GL_FALSE, (const GLfloat*) mvp);
 		glBindVertexArray( vao );
