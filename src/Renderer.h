@@ -1,3 +1,5 @@
+#ifndef __RENDERER_H__
+#define __RENDERER_H__
 /*
   Darkroom is an open-source photography tool.
   Copyright (C) 2017  Guy Sherman
@@ -19,7 +21,11 @@
   Contact the author via https://github.com/guysherman
 */
 
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 // C++ Standard Headers
+#include <memory>
 
 // C Standard Headers
 
@@ -33,60 +39,35 @@
 
 
 // Our Headers
-#include <cstring>
-#include "Canvas.h"
+
 
 
 namespace darkroom
 {
-	Canvas::Canvas(float w, float h) : sizeDirty(true)
+	class Canvas;
+	class CanvasView;
+
+	class Renderer
 	{
-		size[0] = w;
-		size[1] = h;
-	}
+	public:
+		Renderer(GLFWwindow *window);
+		virtual ~Renderer();
 
-	Canvas::~Canvas()
-	{
+		std::shared_ptr<CanvasView> CreateCanvasView(std::shared_ptr<Canvas> canvas);
 
-	}
+		void Init();
+		void Draw(CanvasView &canvasView);
 
-	float *Canvas::GetSize()
-	{
-		return (float*) size;
-	}
+	private:
+		GLFWwindow *window;
 
-	void Canvas::SetSize(float w, float h)
-	{
-		size[0] = w;
-		size[1] = h;
-		sizeDirty = true;
-	}
+		GLuint vao;
+		GLuint vbo;
 
-	bool Canvas::GetSizeDirty()
-	{
-		return sizeDirty;
-	}
-
-	void Canvas::setupVertices()
-	{
-		float verts[30] = { 0.0f,       0.0f, 0.0f, 0.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-				 	 		size[0],    0.0f, 0.0f, 1.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-			 		 		size[0], size[1], 0.0f, 1.0f, 1.0f,
-			 		 		size[0], 	 0.0f, 0.0f, 1.0f, 0.0f};
-		memcpy(&this->vertices, verts, 30 * sizeof(float));
-		sizeDirty = false;
-	}
-
-	float *Canvas::GetVertices()
-	{
-		if (sizeDirty)
-		{
-			setupVertices();
-		}
-		return vertices;
-	}
-
-
+		GLuint vertexsShader;
+		GLuint fragmentShader;
+		GLuint shaderProgram;
+	};
 }
+
+#endif // __RENDERER_H__

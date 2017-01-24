@@ -1,3 +1,5 @@
+#ifndef __FILE_H__
+#define __FILE_H__
 /*
   Darkroom is an open-source photography tool.
   Copyright (C) 2017  Guy Sherman
@@ -20,7 +22,8 @@
 */
 
 // C++ Standard Headers
-
+#include <string>
+#include <fstream>
 // C Standard Headers
 
 
@@ -33,60 +36,16 @@
 
 
 // Our Headers
-#include <cstring>
-#include "Canvas.h"
-
 
 namespace darkroom
 {
-	Canvas::Canvas(float w, float h) : sizeDirty(true)
+	class File
 	{
-		size[0] = w;
-		size[1] = h;
-	}
+	public:
+		static std::string ReadAllText(std::string filepath);
+	private:
 
-	Canvas::~Canvas()
-	{
-
-	}
-
-	float *Canvas::GetSize()
-	{
-		return (float*) size;
-	}
-
-	void Canvas::SetSize(float w, float h)
-	{
-		size[0] = w;
-		size[1] = h;
-		sizeDirty = true;
-	}
-
-	bool Canvas::GetSizeDirty()
-	{
-		return sizeDirty;
-	}
-
-	void Canvas::setupVertices()
-	{
-		float verts[30] = { 0.0f,       0.0f, 0.0f, 0.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-				 	 		size[0],    0.0f, 0.0f, 1.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-			 		 		size[0], size[1], 0.0f, 1.0f, 1.0f,
-			 		 		size[0], 	 0.0f, 0.0f, 1.0f, 0.0f};
-		memcpy(&this->vertices, verts, 30 * sizeof(float));
-		sizeDirty = false;
-	}
-
-	float *Canvas::GetVertices()
-	{
-		if (sizeDirty)
-		{
-			setupVertices();
-		}
-		return vertices;
-	}
-
-
+	};
 }
+
+#endif // __FILE_H__

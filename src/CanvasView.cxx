@@ -1,13 +1,61 @@
+/*
+  Darkroom is an open-source photography tool.
+  Copyright (C) 2017  Guy Sherman
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Contact the author via https://github.com/guysherman
+*/
+
+// C++ Standard Headers
+
+// C Standard Headers
+
+
+// Boost Headers
+
+// 3rd Party Headers
+
+
+// GTK Headers
+
+
+// Our Headers
+#include <cstring>
 #include "CanvasView.h"
 
 namespace darkroom
 {
-	CanvasView::CanvasView(std::shared_ptr<Canvas> canvas, float screenWidth, float screenHeight) : zoom(1.0f), canvas(canvas)
+	CanvasView::CanvasView(std::shared_ptr<Canvas> canvas,
+	float screenWidth,
+	float screenHeight,
+	GLuint vao,
+	GLuint vbo,
+	GLuint vs,
+	GLuint fs,
+	GLuint program) : zoom(1.0f), canvas(canvas)
 	{
 		pan[0] = 0.0f;
 		pan[1] = 0.0f;
 		screenSize[0] = screenWidth;
 		screenSize[1] = screenHeight;
+		this->vao = vao;
+		this->vbo = vbo;
+		this->vs = vs;
+		this->fs = fs;
+		this->program = program;
 		setupProjection();
 	}
 
@@ -68,4 +116,16 @@ namespace darkroom
 
 		mat4x4_ortho(projection, l, r, b, t, n, f);
 	}
+
+	GLuint CanvasView::GetProgram()
+	{
+		return program;
+	}
+
+	GLuint CanvasView::GetVao()
+	{
+		return vao;
+	}
+
+
 }

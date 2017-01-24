@@ -20,7 +20,8 @@
 */
 
 // C++ Standard Headers
-
+#include <string>
+#include <fstream>
 // C Standard Headers
 
 
@@ -33,60 +34,30 @@
 
 
 // Our Headers
-#include <cstring>
-#include "Canvas.h"
-
+#include "File.h"
 
 namespace darkroom
 {
-	Canvas::Canvas(float w, float h) : sizeDirty(true)
-	{
-		size[0] = w;
-		size[1] = h;
-	}
-
-	Canvas::~Canvas()
+	std::string File::ReadAllText(std::string filepath)
 	{
 
-	}
+		std::string result = "";
+		std::ifstream is (filepath, std::ifstream::binary);
+		if (is) {
+			// get length of file:
+			is.seekg (0, is.end);
+			int length = is.tellg();
+			is.seekg (0, is.beg);
 
-	float *Canvas::GetSize()
-	{
-		return (float*) size;
-	}
+			result.reserve(length);
+			result.resize(length, '\0');
 
-	void Canvas::SetSize(float w, float h)
-	{
-		size[0] = w;
-		size[1] = h;
-		sizeDirty = true;
-	}
+			// read data as a block:
+			is.read (&result[0],length);
 
-	bool Canvas::GetSizeDirty()
-	{
-		return sizeDirty;
-	}
-
-	void Canvas::setupVertices()
-	{
-		float verts[30] = { 0.0f,       0.0f, 0.0f, 0.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-				 	 		size[0],    0.0f, 0.0f, 1.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-			 		 		size[0], size[1], 0.0f, 1.0f, 1.0f,
-			 		 		size[0], 	 0.0f, 0.0f, 1.0f, 0.0f};
-		memcpy(&this->vertices, verts, 30 * sizeof(float));
-		sizeDirty = false;
-	}
-
-	float *Canvas::GetVertices()
-	{
-		if (sizeDirty)
-		{
-			setupVertices();
+			is.close();
 		}
-		return vertices;
+
+		return result;
 	}
-
-
 }

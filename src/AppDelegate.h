@@ -20,73 +20,56 @@
 */
 
 // C++ Standard Headers
-
+#include <memory>
 // C Standard Headers
 
 
 // Boost Headers
 
 // 3rd Party Headers
-
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 // GTK Headers
 
 
 // Our Headers
-#include <cstring>
-#include "Canvas.h"
 
+
+
+#ifndef __APPDELEGATE_H__
+#define __APPDELEGATE_H__
 
 namespace darkroom
 {
-	Canvas::Canvas(float w, float h) : sizeDirty(true)
+	class Renderer;
+	class Canvas;
+	class CanvasView;
+	class AppDelegate
 	{
-		size[0] = w;
-		size[1] = h;
-	}
+	public:
+		AppDelegate(int width, int height);
+		virtual ~AppDelegate();
 
-	Canvas::~Canvas()
-	{
+		void MouseButtonEvent(GLFWwindow* window, int button, int action, int mods);
+		void KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-	}
+		void Run();
 
-	float *Canvas::GetSize()
-	{
-		return (float*) size;
-	}
+		static AppDelegate *instance;
 
-	void Canvas::SetSize(float w, float h)
-	{
-		size[0] = w;
-		size[1] = h;
-		sizeDirty = true;
-	}
+	private:
+		GLFWwindow* window;
+		std::shared_ptr<Renderer> renderer;
+		std::shared_ptr<Canvas> canvas;
+		std::shared_ptr<CanvasView> canvasView;
 
-	bool Canvas::GetSizeDirty()
-	{
-		return sizeDirty;
-	}
 
-	void Canvas::setupVertices()
-	{
-		float verts[30] = { 0.0f,       0.0f, 0.0f, 0.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-				 	 		size[0],    0.0f, 0.0f, 1.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-			 		 		size[0], size[1], 0.0f, 1.0f, 1.0f,
-			 		 		size[0], 	 0.0f, 0.0f, 1.0f, 0.0f};
-		memcpy(&this->vertices, verts, 30 * sizeof(float));
-		sizeDirty = false;
-	}
 
-	float *Canvas::GetVertices()
-	{
-		if (sizeDirty)
-		{
-			setupVertices();
-		}
-		return vertices;
-	}
+	};
 
 
 }
+
+
+#endif //__APPDELEGATE_H__
