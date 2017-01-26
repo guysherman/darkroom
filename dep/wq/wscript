@@ -14,7 +14,7 @@ def build(bld):
 	source = bld.path.ant_glob('src/*.cxx'),
 	cxxflags=['-fPIC', '-Werror', '-pedantic-errors'],
 	target="wq",
-	includes = ['./include'],
-	export_includes=['./include'],
+	includes = ['./include', '/usr/local/include', '/usr/include'],
+	export_includes=['./include', '/usr/local/include', '/usr/include'],
 	install_path='${LIBDIR}',
 	cppcheck_skip=True)

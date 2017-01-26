@@ -4,6 +4,7 @@
 
 import subprocess
 import waftools
+import sys
 
 PROJ_VERSION			=	'0.0.1'
 PROJ_MAJOR_VERSION 	=	'0'
@@ -15,6 +16,10 @@ APPNAME = 'darkroom'
 top = '.'
 out = 'build'
 libs = ['pthread', 'boost_system']
+linkerflags = []
+if sys.platform == 'darwin':
+	linkerflags = ['-framework', 'GLUT', '-framework', 'OpenGL']
+
 
 defines = ''
 
@@ -39,6 +44,12 @@ def configure(conf):
 	conf.env.CXXFLAGS = ['-Wall', '-g', '-std=c++11']
 	conf.check_cfg(package='glfw3', uselib_store='GLFW', args=['--cflags', '--libs'])
 	conf.check_cfg(package='glew', uselib_store='GLEW', args=['--cflags', '--libs'])
+	if sys.platform == 'darwin':
+		conf.env.LIBPATH_BOOST = ['/usr/local/lib']
+		conf.env.INCLUDES_BOOST = ['/usr/local/include']
+	else:
+		conf.env.LIBPATH_BOOST = ['/usr/lib']
+		conf.env.INCLUDES_BOOST = ['/usr/include']
 
 
 def build(bld):
@@ -47,10 +58,11 @@ def build(bld):
 	bld.program(source = bld.path.ant_glob('src/**/*.cxx'),
 				includes = ['./include'],
 				cxxflags=['-pedantic-errors'],
+				ldflags=linkerflags,
 				lib = libs,
 				target = 'darkroom',
 				install_path = '${BINDIR}',
-				use=['GLEW', 'GLFW'],
+				use=['GLEW', 'GLFW', 'BOOST'],
 				defines = defines,
 				features="cxx cxxprogram")
 
@@ -61,7 +73,7 @@ def build(bld):
 				target = 'tests/all',
 				install_path = '${BINDIR}',
 				defines = defines,
-				use=['wq', 'gtest', 'gtest_main'],
+				use=['wq', 'gtest', 'gtest_main', 'BOOST'],
 				cppcheck_skip=True,
 				features="cxx cxxprogram")
 
