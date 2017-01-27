@@ -52,6 +52,7 @@ namespace darkroom
 		virtual ~AppDelegate();
 
 		void MouseButtonEvent(GLFWwindow* window, int button, int action, int mods);
+		void MousePositionEvent(GLFWwindow* window, double xpos, double ypos);
 		void KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 		void Run();

@@ -66,6 +66,14 @@ namespace darkroom
 		}
 	}
 
+	static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+	{
+		if(nullptr != AppDelegate::instance)
+		{
+			AppDelegate::instance->MousePositionEvent(window, xpos, ypos);
+		}
+	}
+
 	AppDelegate::AppDelegate(int width, int height)
 	{
 		glfwSetErrorCallback(error_callback);
@@ -91,6 +99,7 @@ namespace darkroom
 
 		glfwSetKeyCallback(window, key_callback);
 		glfwSetMouseButtonCallback(window, mouse_button_callback);
+		glfwSetCursorPosCallback(window, cursor_position_callback);
 
 		renderer = std::shared_ptr<Renderer>(new Renderer(window));
 		renderer->Init();
@@ -116,12 +125,17 @@ namespace darkroom
 
 	}
 
+	void AppDelegate::MousePositionEvent(GLFWwindow *window, double xpos, double ypos)
+	{
+		
+	}
+
 	void AppDelegate::Run()
 	{
 		while ( !glfwWindowShouldClose( window ) )
 		{
 			renderer->Draw(*canvasView);
-			glfwWaitEventsTimeout(0.2);
+			glfwWaitEventsTimeout(0.016);
 			//glfwPollEvents();
 		}
 	}
