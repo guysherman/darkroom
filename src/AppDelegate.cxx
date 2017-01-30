@@ -122,12 +122,24 @@ namespace darkroom
 
 	void AppDelegate::MouseButtonEvent(GLFWwindow *window, int button, int action, int mods)
 	{
-
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		if (canvasView->ScreenPointIsInView(xpos, ypos))
+		{
+			canvasView->MouseButton(window, button, action, mods);
+		}
 	}
 
 	void AppDelegate::MousePositionEvent(GLFWwindow *window, double xpos, double ypos)
 	{
-		
+		vec2 to = {(float)xpos, (float)ypos};
+		if (canvasView->ScreenPointIsInView(xpos, ypos))
+		{
+			canvasView->MouseMoved(window, lastMousePos, to);
+		}
+
+		lastMousePos[0] = xpos;
+		lastMousePos[1] = ypos;
 	}
 
 	void AppDelegate::Run()

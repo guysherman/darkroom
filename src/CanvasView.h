@@ -67,6 +67,10 @@ namespace darkroom
 		void SetPan(vec2 pan);
 
 		void SetScreenSize(float width, float height);
+		bool ScreenPointIsInView(double xpos, double ypos);
+
+		bool MouseMoved(GLFWwindow *window, vec2 from, vec2 to);
+		bool MouseButton(GLFWwindow *window, int button, int action, int mods);
 
 
 		mat4x4& GetProjectionMatrix();
@@ -76,20 +80,29 @@ namespace darkroom
 
 
 	private:
+
+		enum MouseMode
+		{
+			None = 0,
+			Pan = 1
+		};
+
 		void setupProjection();
 
-
+		MouseMode mouseMode;
 		float zoom;
 		vec2 pan;
 		vec2 screenSize;
 		mat4x4 projection;
-		
+
 		GLuint vao;
 		GLuint vbo;
 		GLuint vs;
 		GLuint fs;
 		GLuint program;
 		std::shared_ptr<Canvas> canvas;
+		GLFWcursor* handCursor;
+		GLFWcursor* normalCursor;
 	};
 }
 

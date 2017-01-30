@@ -30,6 +30,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "linmath.h"
 // GTK Headers
 
 
@@ -64,6 +65,7 @@ namespace darkroom
 		std::shared_ptr<Renderer> renderer;
 		std::shared_ptr<Canvas> canvas;
 		std::shared_ptr<CanvasView> canvasView;
+		vec2 lastMousePos;
 
 
 

@@ -20,7 +20,7 @@
 */
 
 // C++ Standard Headers
-
+#include <iostream>
 // C Standard Headers
 
 
@@ -56,12 +56,15 @@ namespace darkroom
 		this->vs = vs;
 		this->fs = fs;
 		this->program = program;
+		handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+		normalCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 		setupProjection();
 	}
 
 	CanvasView::~CanvasView()
 	{
-
+		glfwDestroyCursor(handCursor);
+		glfwDestroyCursor(normalCursor);
 	}
 
 	float CanvasView::GetZoom()
@@ -126,6 +129,53 @@ namespace darkroom
 	{
 		return vao;
 	}
+
+	bool CanvasView::ScreenPointIsInView(double xpos, double ypos)
+	{
+		// TODO: at some point, this will have constrained size/position,
+		// in which case we'll need some logic here
+		return true;
+	}
+
+	bool CanvasView::MouseMoved(GLFWwindow *window, vec2 from, vec2 to)
+	{
+		if (mouseMode == MouseMode::Pan)
+		{
+			vec2 move;
+			vec2 newPan;
+			vec2_sub(move, to, from);
+			move[0] = move[0] * -1.0f;
+			vec2_add(newPan, pan, move);
+			pan[0] = newPan[0];
+			pan[1] = newPan[1];
+
+			std::cout << "move: " << move[0] << ", " << move[1] << "; " << "from: " << from[0] << ", " << from[1] << "; " << "to: " << to[0] << ", " << to[1] << ";" << std::endl;
+			return true;
+		}
+
+
+		return false;
+	}
+
+	bool CanvasView::MouseButton(GLFWwindow *window, int button, int action, int mods)
+	{
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (mods & GLFW_MOD_ALT))
+		{
+			mouseMode = MouseMode::Pan;
+			glfwSetCursor(window, handCursor);
+			return true;
+		}
+		else
+		{
+			// TODO: this will be a bug eventually. Individual components should not decide the
+			// cursor, they should ask for a cursor, and only the one who returns true should get it.
+			glfwSetCursor(window, normalCursor);
+			mouseMode = MouseMode::None;
+		}
+
+		return false;
+	}
+
 
 
 }
