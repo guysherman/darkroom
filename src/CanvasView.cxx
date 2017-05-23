@@ -107,15 +107,36 @@ namespace darkroom
 		float* size = canvas->GetSize();
 		float hcw = size[0] / 2.0f;
 		float hch = size[1] / 2.0f;
-		float hw = screenSize[0] / 2.0f;
-		float hh = screenSize[1] / 2.0f;
+		float hw = screenSize[0] / (2.0f);
+		float hh = screenSize[1] / (2.0f);
 
-		float l = hcw + pan[0] - hw;
-		float r = hcw + pan[0] + hw;
-		float b = hch + pan[1] - hh;
-		float t = hch + pan[1] + hh;
-		float n = 0.0f;
-		float f = 1.0f;
+		float screenAspectRatio = screenSize[0] / screenSize[1];
+		float canvasAspectRatio = size[0] / size[1];
+
+		float l = 0.0f, r = 0.0f, b = 0.0f, t = 0.0f,n = 0.0f,f = 0.0f;
+
+		if ( canvasAspectRatio < screenAspectRatio )
+		{
+			//l = ( hch * screenAspectRatio ) * ( 1 - zoom ) + pan[0];
+			l = (hch * canvasAspectRatio) - (hch * screenAspectRatio * zoom) + pan[0];
+			//r = ( hch * screenAspectRatio ) * ( 1 + zoom ) + pan[0];
+			r = (hch * canvasAspectRatio) + (hch * screenAspectRatio * zoom) + pan[0];
+			b = hch * ( 1 - zoom ) + pan[1];
+			t = hch * ( 1 + zoom ) + pan[1];
+			n = 0.0f;
+			f = 1.0f;
+		}
+		else 
+		{
+			l = hcw * ( 1 - zoom ) + pan[0];
+			r = hcw * ( 1 + zoom ) + pan[0];
+			b = ( hcw / screenAspectRatio ) * ( 1 - zoom ) + pan[1];
+			t = ( hcw / screenAspectRatio ) * ( 1 + zoom ) + pan[1];
+			n = 0.0f;
+			f = 1.0f;
+		}
+
+		
 
 		mat4x4_ortho(projection, l, r, b, t, n, f);
 	}
@@ -174,6 +195,63 @@ namespace darkroom
 		}
 
 		return false;
+	}
+
+	bool CanvasView::Scrolled(GLFWwindow *window, vec2 from, vec2 to)
+	{
+		vec2 move;
+		vec2_sub(move, to, from);
+		std::cout << "move: " << move[0] << ", " << move[1] << "; " << "from: " << from[0] << ", " << from[1] << "; " << "to: " << to[0] << ", " << to[1] << ";" << std::endl;
+		
+		float newZoom = zoom + to[1];
+		
+		if (newZoom >= 0)
+		{
+			SetZoom(newZoom);
+			return true;
+		}
+		return false;
+	}
+
+	bool CanvasView::KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) 
+	{
+		if (key == GLFW_KEY_H && action == GLFW_PRESS && (mods & GLFW_MOD_ALT))
+		{
+			if (!isViewCentred())
+			{
+				centreView();
+				return true;
+			}
+			else if (!isZoomedToFit()) 
+			{
+				resetZoom();
+				return true;
+			}
+		}
+		
+		return false;
+		
+	}
+
+	bool CanvasView::isViewCentred()
+	{
+		return 0.0f == pan[0] && 0.0f == pan[1];
+	}
+
+	void CanvasView::centreView()
+	{
+		vec2 newPan = {0.0f, 0.0f};
+		SetPan(newPan);
+	}
+
+	bool CanvasView::isZoomedToFit()
+	{
+		return 1.0f == zoom;
+	}
+
+	void CanvasView::resetZoom()
+	{
+		SetZoom(1.0f);
 	}
 
 

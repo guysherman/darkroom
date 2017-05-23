@@ -25,7 +25,7 @@
 // C++ Standard Headers
 
 // C Standard Headers
-#include <stdio.h>
+#include <cstdio>
 
 // Boost Headers
 

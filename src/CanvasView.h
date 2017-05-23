@@ -71,6 +71,9 @@ namespace darkroom
 
 		bool MouseMoved(GLFWwindow *window, vec2 from, vec2 to);
 		bool MouseButton(GLFWwindow *window, int button, int action, int mods);
+		bool Scrolled(GLFWwindow *window, vec2 from, vec2 to);
+
+		bool KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 
 		mat4x4& GetProjectionMatrix();
@@ -88,6 +91,11 @@ namespace darkroom
 		};
 
 		void setupProjection();
+		bool isViewCentred();
+		bool isZoomedToFit();
+
+		void centreView();
+		void resetZoom();
 
 		MouseMode mouseMode;
 		float zoom;

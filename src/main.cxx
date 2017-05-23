@@ -17,7 +17,7 @@
 // Contact the author via https://github.com/guysherman
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <memory>
 #include "linmath.h"

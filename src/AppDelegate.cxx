@@ -74,6 +74,14 @@ namespace darkroom
 		}
 	}
 
+	static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+	{
+		if (nullptr != AppDelegate::instance)
+		{
+			AppDelegate::instance->ScrollEvent(window, xoffset, yoffset);
+		}
+	}
+
 	AppDelegate::AppDelegate(int width, int height)
 	{
 		glfwSetErrorCallback(error_callback);
@@ -100,11 +108,14 @@ namespace darkroom
 		glfwSetKeyCallback(window, key_callback);
 		glfwSetMouseButtonCallback(window, mouse_button_callback);
 		glfwSetCursorPosCallback(window, cursor_position_callback);
+		glfwSetScrollCallback(window, scroll_callback);
 
 		renderer = std::shared_ptr<Renderer>(new Renderer(window));
 		renderer->Init();
 		canvas = std::shared_ptr<Canvas>(new Canvas(1280.0f, 1024.0f));
 		canvasView = renderer->CreateCanvasView(canvas);
+		lastMousePos[0] = lastMousePos[1] = 0.0f;
+		lastScrollPos[0] = lastScrollPos[1] = 0.0f;
 	}
 
 	AppDelegate::~AppDelegate()
@@ -118,6 +129,8 @@ namespace darkroom
 		{
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
+
+		canvasView->KeyEvent(window, key, scancode, action, mods);
 	}
 
 	void AppDelegate::MouseButtonEvent(GLFWwindow *window, int button, int action, int mods)
@@ -140,6 +153,15 @@ namespace darkroom
 
 		lastMousePos[0] = xpos;
 		lastMousePos[1] = ypos;
+	}
+
+	void AppDelegate::ScrollEvent(GLFWwindow *window, double xoffset, double yoffset)
+	{
+		vec2 to = {(float)xoffset, (float)yoffset};
+		canvasView->Scrolled(window, lastScrollPos, to);
+
+		lastScrollPos[0] = xoffset;
+		lastScrollPos[1] = yoffset;
 	}
 
 	void AppDelegate::Run()

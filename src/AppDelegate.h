@@ -54,6 +54,7 @@ namespace darkroom
 
 		void MouseButtonEvent(GLFWwindow* window, int button, int action, int mods);
 		void MousePositionEvent(GLFWwindow* window, double xpos, double ypos);
+		void ScrollEvent(GLFWwindow* window, double xoffset, double yoffset);
 		void KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 		void Run();
@@ -66,6 +67,7 @@ namespace darkroom
 		std::shared_ptr<Canvas> canvas;
 		std::shared_ptr<CanvasView> canvasView;
 		vec2 lastMousePos;
+		vec2 lastScrollPos;
 
 
 
