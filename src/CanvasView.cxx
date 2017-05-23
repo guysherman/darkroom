@@ -205,7 +205,7 @@ namespace darkroom
 		
 		float newZoom = zoom + to[1];
 		
-		if (newZoom >= 0)
+		if (newZoom >= 0 && newZoom <= 1)
 		{
 			SetZoom(newZoom);
 			return true;
