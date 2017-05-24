@@ -130,8 +130,10 @@ namespace darkroom
 		{
 			l = hcw * ( 1 - zoom ) + pan[0];
 			r = hcw * ( 1 + zoom ) + pan[0];
-			b = ( hcw / screenAspectRatio ) * ( 1 - zoom ) + pan[1];
-			t = ( hcw / screenAspectRatio ) * ( 1 + zoom ) + pan[1];
+			//b = ( hcw / screenAspectRatio ) * ( 1 - zoom ) + pan[1];
+			b = (hcw / canvasAspectRatio) - ((hcw * zoom) / screenAspectRatio) + pan[1];
+			//t = ( hcw / screenAspectRatio ) * ( 1 + zoom ) + pan[1];
+			t = (hcw / canvasAspectRatio) + ((hcw * zoom) / screenAspectRatio) + pan[1];
 			n = 0.0f;
 			f = 1.0f;
 		}
