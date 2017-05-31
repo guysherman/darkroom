@@ -6,7 +6,8 @@
             "command": "./waf",
             "args": [],
             "isShellCommand": true,
-            "isBackground": true
+            "isBackground": true,
+            "isBuildCommand": true
         },
         {
             "taskName": "Configure",

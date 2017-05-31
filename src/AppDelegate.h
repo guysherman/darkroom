@@ -41,6 +41,13 @@
 #ifndef __APPDELEGATE_H__
 #define __APPDELEGATE_H__
 
+#ifdef __APPLE__
+#define SCROLL_SENSITIVITY 1.0f
+#else 
+#define SCROLL_SENSITIVITY 0.05f
+#endif
+
+
 namespace darkroom
 {
 	class Renderer;

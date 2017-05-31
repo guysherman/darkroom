@@ -157,7 +157,7 @@ namespace darkroom
 
 	void AppDelegate::ScrollEvent(GLFWwindow *window, double xoffset, double yoffset)
 	{
-		vec2 to = {(float)xoffset, (float)yoffset};
+		vec2 to = {(float)xoffset * SCROLL_SENSITIVITY, (float)yoffset * SCROLL_SENSITIVITY};
 		canvasView->Scrolled(window, lastScrollPos, to);
 
 		lastScrollPos[0] = xoffset;
