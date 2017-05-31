@@ -43,7 +43,7 @@
 
 namespace darkroom
 {
-	Renderer::Renderer(GLFWwindow *window) : window(window), vao(0), vbo(0), vertexsShader(0), fragmentShader(0), shaderProgram(0)
+	Renderer::Renderer(GLFWwindow *window) : window(window)
 	{
 
 	}

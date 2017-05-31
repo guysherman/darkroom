@@ -60,13 +60,6 @@ namespace darkroom
 
 	private:
 		GLFWwindow *window;
-
-		GLuint vao;
-		GLuint vbo;
-
-		GLuint vertexsShader;
-		GLuint fragmentShader;
-		GLuint shaderProgram;
 	};
 }
 
