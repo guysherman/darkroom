@@ -43,6 +43,7 @@ namespace darkroom
 	float screenHeight,
 	GLuint vao,
 	GLuint vbo,
+	GLuint ibo,
 	GLuint vs,
 	GLuint fs,
 	GLuint program) : zoom(1.0f), canvas(canvas)
@@ -53,6 +54,7 @@ namespace darkroom
 		screenSize[1] = screenHeight;
 		this->vao = vao;
 		this->vbo = vbo;
+		this->ibo = ibo;
 		this->vs = vs;
 		this->fs = fs;
 		this->program = program;

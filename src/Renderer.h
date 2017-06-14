@@ -56,6 +56,8 @@ namespace darkroom
 		std::shared_ptr<CanvasView> CreateCanvasView(std::shared_ptr<Canvas> canvas);
 
 		void Init();
+    void BeginFrame();
+    void EndFrame();
 		void Draw(CanvasView &canvasView);
 
 	private:

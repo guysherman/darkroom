@@ -52,13 +52,15 @@ namespace darkroom
 		bool GetSizeDirty();
 
 		float *GetVertices();
+		unsigned int *GetIndices();
 
 	private:
 		void setupVertices();
 
 		vec2 size;
 		bool sizeDirty;
-		float vertices[30];
+		float vertices[20];
+		unsigned int indices[6];
 
 	};
 }

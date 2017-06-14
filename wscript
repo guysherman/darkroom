@@ -15,7 +15,7 @@ APPNAME = 'darkroom'
 
 top = '.'
 out = 'build'
-libs = ['pthread', 'boost_system']
+libs = ['pthread']
 linkerflags = []
 if sys.platform == 'darwin':
 	linkerflags = ['-framework', 'GLUT', '-framework', 'OpenGL']
@@ -50,19 +50,22 @@ def configure(conf):
 	else:
 		conf.env.LIBPATH_BOOST = ['/usr/lib']
 		conf.env.INCLUDES_BOOST = ['/usr/include']
+	conf.env.STLIB_ROCKET = ['RocketCore', 'RocketControls', 'RocketDebugger']
+	conf.env.STLIBPATH_ROCKET = ['/usr/local/lib64']
+	conf.env.INCLUDES_ROCKET = ['/usr/local/include']
 
 
 def build(bld):
 	bld.recurse(SUBFOLDERS)
 	bld.env = bld.all_envs['main']
-	bld.program(source = bld.path.ant_glob('src/**/*.cxx'),
+	bld.program(source = bld.path.ant_glob('src/**/*.c*'),
 				includes = ['./include'],
 				cxxflags=['-pedantic-errors'],
 				ldflags=linkerflags,
 				lib = libs,
 				target = 'darkroom',
 				install_path = '${BINDIR}',
-				use=['GLEW', 'GLFW', 'BOOST'],
+				use=['GLEW', 'GLFW', 'BOOST', 'ROCKET'],
 				defines = defines,
 				features="cxx cxxprogram")
 

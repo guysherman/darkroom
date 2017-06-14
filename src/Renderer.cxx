@@ -88,6 +88,12 @@ namespace darkroom
 		glBindBuffer( GL_ARRAY_BUFFER, vbo );
 		glBufferData( GL_ARRAY_BUFFER, 30 * sizeof( GLfloat ), vertices, GL_STATIC_DRAW );
 
+		GLuint ibo;
+		unsigned int *indices = canvas->GetIndices();
+		glGenBuffers( 1, &ibo );
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ibo );
+		glBufferData( GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof( GLuint ), indices, GL_STATIC_DRAW );
+
 		GLuint vao;
 		glGenVertexArrays( 1, &vao );
 		glBindVertexArray( vao );
@@ -99,6 +105,7 @@ namespace darkroom
 
 		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL );
 		glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(sizeof(float) * 2) );
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ibo );
 
 		/* GL shader objects for vertex and fragment shader [components] */
 		GLuint vs, fs;
@@ -118,8 +125,18 @@ namespace darkroom
 		glAttachShader( shader_programme, vs );
 		glLinkProgram( shader_programme );
 
-		std::shared_ptr<CanvasView> result(new CanvasView(canvas, width, height, vao, vbo, vs, fs, shader_programme));
+		std::shared_ptr<CanvasView> result(new CanvasView(canvas, width, height, vao, vbo, ibo, vs, fs, shader_programme));
 		return result;
+	}
+
+	void Renderer::BeginFrame()
+	{
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	}
+
+	void Renderer::EndFrame()
+	{
+		glfwSwapBuffers( window );
 	}
 
 	void Renderer::Draw(CanvasView &canvasView)
@@ -128,11 +145,9 @@ namespace darkroom
 		glfwGetFramebufferSize(window, &width, &height);
 		canvasView.SetScreenSize(width, height);
 
-
 		mat4x4 m, mvp;
 		int matrix_location = glGetUniformLocation (canvasView.GetProgram(), "matrix");
-
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		
 		glViewport(0, 0, width, height);
 		glUseProgram( canvasView.GetProgram() );
 
@@ -142,9 +157,6 @@ namespace darkroom
 		glUniformMatrix4fv (matrix_location, 1, GL_FALSE, (const GLfloat*) mvp);
 		glBindVertexArray( canvasView.GetVao() );
 
-		glDrawArrays( GL_TRIANGLES, 0, 6 );
-
-		glfwSwapBuffers( window );
-
+		glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0  );
 	}
 }

@@ -69,13 +69,14 @@ namespace darkroom
 
 	void Canvas::setupVertices()
 	{
-		float verts[30] = { 0.0f,       0.0f, 0.0f, 0.0f, 0.0f,
+		float verts[20] = { 0.0f,       0.0f, 0.0f, 0.0f, 0.0f,
 					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-				 	 		size[0],    0.0f, 0.0f, 1.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-			 		 		size[0], size[1], 0.0f, 1.0f, 1.0f,
-			 		 		size[0], 	 0.0f, 0.0f, 1.0f, 0.0f};
+							size[0], size[1], 0.0f, 1.0f, 1.0f,
+				 	 		size[0],    0.0f, 0.0f, 1.0f, 0.0f};
 		memcpy(&this->vertices, verts, 30 * sizeof(float));
+
+		unsigned int inds[6] = { 0, 1, 2, 2, 3, 0 };
+		memcpy(&this->indices, inds, 6 * sizeof(int));
 		sizeDirty = false;
 	}
 
@@ -86,6 +87,15 @@ namespace darkroom
 			setupVertices();
 		}
 		return vertices;
+	}
+
+	unsigned int *Canvas::GetIndices()
+	{
+		if (sizeDirty)
+		{
+			setupVertices();
+		}
+		return indices;
 	}
 
 

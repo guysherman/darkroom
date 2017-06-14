@@ -34,6 +34,7 @@
 
 // Our Headers
 
+
 #include "AppDelegate.h"
 #include "Renderer.h"
 #include "Canvas.h"
@@ -168,8 +169,11 @@ namespace darkroom
 	{
 		while ( !glfwWindowShouldClose( window ) )
 		{
+			renderer->BeginFrame();
 			renderer->Draw(*canvasView);
+		
 			glfwWaitEventsTimeout(0.016);
+			renderer->EndFrame();
 			//glfwPollEvents();
 		}
 	}

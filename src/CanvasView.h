@@ -55,6 +55,7 @@ namespace darkroom
 			float screenHeight,
 			GLuint vao,
 			GLuint vbo,
+			GLuint ibo,
 			GLuint vs,
 			GLuint fs,
 			GLuint program);
@@ -105,6 +106,7 @@ namespace darkroom
 
 		GLuint vao;
 		GLuint vbo;
+		GLuint ibo;
 		GLuint vs;
 		GLuint fs;
 		GLuint program;
