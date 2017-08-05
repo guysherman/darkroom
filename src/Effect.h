@@ -1,5 +1,5 @@
-#ifndef __RENDERER_H__
-#define __RENDERER_H__
+#ifndef __EFFECT_H__
+#define __EFFECT_H__
 /*
 	Darkroom is an open-source photography tool.
 	Copyright (C) 2017  Guy Sherman
@@ -22,10 +22,8 @@
 */
 
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 // C++ Standard Headers
-#include <memory>
+#include <cstdint>
 #include <string>
 
 // C Standard Headers
@@ -40,36 +38,23 @@
 
 
 // Our Headers
-#include "Effect.h"
 
 
 namespace darkroom
 {
-	struct GeometryInfo;
-	class GeometryHandle;
-	
-	
-	class Renderer
+	class Effect
 	{
 	public:
-		Renderer(GLFWwindow *window);
-		virtual ~Renderer();
+		Effect(uint32_t vs, uint32_t fs, uint32_t program);
+		virtual ~Effect();
 
-		void Init();
-		void BeginFrame();
-		void EndFrame();
+		uint32_t GetProgram();
 
-		void Draw(GeometryHandle *geometryHandle, Effect *effect);
-
-		std::unique_ptr<GeometryHandle> CreateGeometryHandle(GeometryInfo& geometryInfo);
-		std::unique_ptr<Effect> CreateEffect(std::string vsPath, std::string fsPath);
-
-
-		
-
-	private:
-		GLFWwindow *window;
+	protected:
+		uint32_t vs;
+		uint32_t fs;
+		uint32_t program;
 	};
 }
 
-#endif // __RENDERER_H__
+#endif // __EFFECT_H__

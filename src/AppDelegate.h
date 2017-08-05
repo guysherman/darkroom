@@ -51,8 +51,7 @@
 namespace darkroom
 {
 	class Renderer;
-	class Canvas;
-	class CanvasView;
+	
 	class AppDelegate
 	{
 	public:
@@ -71,8 +70,6 @@ namespace darkroom
 	private:
 		GLFWwindow* window;
 		std::shared_ptr<Renderer> renderer;
-		std::shared_ptr<Canvas> canvas;
-		std::shared_ptr<CanvasView> canvasView;
 		vec2 lastMousePos;
 		vec2 lastScrollPos;
 

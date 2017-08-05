@@ -21,6 +21,8 @@
 
 // C++ Standard Headers
 #include <iostream>
+#include <cstdint>
+
 // C Standard Headers
 
 
@@ -37,8 +39,8 @@
 
 #include "AppDelegate.h"
 #include "Renderer.h"
-#include "Canvas.h"
-#include "CanvasView.h"
+#include "GeometryHandle.h"
+
 
 namespace darkroom
 {
@@ -113,8 +115,6 @@ namespace darkroom
 
 		renderer = std::shared_ptr<Renderer>(new Renderer(window));
 		renderer->Init();
-		canvas = std::shared_ptr<Canvas>(new Canvas(1280.0f, 1024.0f));
-		canvasView = renderer->CreateCanvasView(canvas);
 		lastMousePos[0] = lastMousePos[1] = 0.0f;
 		lastScrollPos[0] = lastScrollPos[1] = 0.0f;
 	}
@@ -131,26 +131,18 @@ namespace darkroom
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
 
-		canvasView->KeyEvent(window, key, scancode, action, mods);
 	}
 
 	void AppDelegate::MouseButtonEvent(GLFWwindow *window, int button, int action, int mods)
 	{
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
-		if (canvasView->ScreenPointIsInView(xpos, ypos))
-		{
-			canvasView->MouseButton(window, button, action, mods);
-		}
+
 	}
 
 	void AppDelegate::MousePositionEvent(GLFWwindow *window, double xpos, double ypos)
 	{
 		vec2 to = {(float)xpos, (float)ypos};
-		if (canvasView->ScreenPointIsInView(xpos, ypos))
-		{
-			canvasView->MouseMoved(window, lastMousePos, to);
-		}
 
 		lastMousePos[0] = xpos;
 		lastMousePos[1] = ypos;
@@ -159,7 +151,6 @@ namespace darkroom
 	void AppDelegate::ScrollEvent(GLFWwindow *window, double xoffset, double yoffset)
 	{
 		vec2 to = {(float)xoffset * SCROLL_SENSITIVITY, (float)yoffset * SCROLL_SENSITIVITY};
-		canvasView->Scrolled(window, lastScrollPos, to);
 
 		lastScrollPos[0] = xoffset;
 		lastScrollPos[1] = yoffset;
@@ -167,10 +158,53 @@ namespace darkroom
 
 	void AppDelegate::Run()
 	{
+		float points[] = 
+		{
+			-0.5f,  0.5f, 0.0f, 
+			 0.5f,  0.5f, 0.0f,
+			 0.5f, -0.5f, 0.0f,
+			-0.5f, -0.5f, 0.0f,
+		};
+
+		float colors[] = 
+		{
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f
+		};
+
+		float texCoords[] = 
+		{
+			1.0f, 1.0f,
+			1.0f, 1.0f,
+			1.0f, 1.0f,
+			1.0f, 1.0f
+		};
+
+		uint32_t indices[] = 
+		{
+			0, 1, 2,
+			0, 2, 3
+		};
+
+		GeometryInfo gi;
+		gi.positions = &points[0];
+		gi.colors = &colors[0];
+		gi.texCoords = &texCoords[0];
+		gi.indices = &indices[0];
+		gi.numVertices = 4;
+		gi.numIndices = 6;
+
+		auto gh = renderer->CreateGeometryHandle(gi);
+		auto effect = renderer->CreateEffect("assets/basic_vs.glsl", "assets/basic_fs.glsl");
+		
+		
 		while ( !glfwWindowShouldClose( window ) )
 		{
 			renderer->BeginFrame();
-			renderer->Draw(*canvasView);
+			
+			renderer->Draw(gh.get(), effect.get());
 		
 			glfwWaitEventsTimeout(0.016);
 			renderer->EndFrame();

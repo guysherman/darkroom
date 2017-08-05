@@ -1,5 +1,5 @@
-#ifndef __RENDERER_H__
-#define __RENDERER_H__
+#ifndef __GEOMETRYHANDLE_H__
+#define __GEOMETRYHANDLE_H__
 /*
 	Darkroom is an open-source photography tool.
 	Copyright (C) 2017  Guy Sherman
@@ -22,11 +22,8 @@
 */
 
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 // C++ Standard Headers
-#include <memory>
-#include <string>
+#include <cstdint>
 
 // C Standard Headers
 
@@ -40,36 +37,42 @@
 
 
 // Our Headers
-#include "Effect.h"
+
 
 
 namespace darkroom
 {
-	struct GeometryInfo;
-	class GeometryHandle;
+	struct GeometryInfo
+	{
+		float *positions;
+		float *colors;
+		float *texCoords;
+		uint32_t *indices;
+		uint32_t numVertices;
+		uint32_t numIndices;
+	};
 	
-	
-	class Renderer
+	class GeometryHandle
 	{
 	public:
-		Renderer(GLFWwindow *window);
-		virtual ~Renderer();
-
-		void Init();
-		void BeginFrame();
-		void EndFrame();
-
-		void Draw(GeometryHandle *geometryHandle, Effect *effect);
-
-		std::unique_ptr<GeometryHandle> CreateGeometryHandle(GeometryInfo& geometryInfo);
-		std::unique_ptr<Effect> CreateEffect(std::string vsPath, std::string fsPath);
-
-
+		GeometryHandle(uint32_t vao, uint32_t posBuf, uint32_t colBuf, uint32_t tcBuf, uint32_t idxBuf, uint32_t numIndices);
+		virtual ~GeometryHandle();
 		
-
-	private:
-		GLFWwindow *window;
+		const uint32_t GetVao() const;
+		const uint32_t GetPositionBuffer() const;
+		const uint32_t GetColorBuffer() const;
+		const uint32_t GetTexCoordBuffer() const;
+		const uint32_t GetIndexBuffer() const;
+		const uint32_t GetNumIndices() const;
+	
+	protected:
+		uint32_t vao;
+		uint32_t posBuf;
+		uint32_t colBuf;
+		uint32_t tcBuf;
+		uint32_t idxBuf;
+		uint32_t numIndices;
 	};
 }
 
-#endif // __RENDERER_H__
+#endif // __GEOMETRYHANDLE_H__

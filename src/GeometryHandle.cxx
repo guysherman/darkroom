@@ -1,5 +1,3 @@
-#ifndef __RENDERER_H__
-#define __RENDERER_H__
 /*
 	Darkroom is an open-source photography tool.
 	Copyright (C) 2017  Guy Sherman
@@ -22,11 +20,7 @@
 */
 
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 // C++ Standard Headers
-#include <memory>
-#include <string>
 
 // C Standard Headers
 
@@ -40,36 +34,60 @@
 
 
 // Our Headers
-#include "Effect.h"
-
+#include "GeometryHandle.h"
 
 namespace darkroom
 {
-	struct GeometryInfo;
-	class GeometryHandle;
-	
-	
-	class Renderer
+	GeometryHandle::GeometryHandle(
+		uint32_t vao, 
+		uint32_t posBuf, 
+		uint32_t colBuf, 
+		uint32_t tcBuf, 
+		uint32_t idxBuf, 
+		uint32_t numIndices) :
+		vao(vao),
+		posBuf(posBuf),
+		colBuf(colBuf),
+		tcBuf(tcBuf),
+		idxBuf(idxBuf),
+		numIndices(numIndices) 
 	{
-	public:
-		Renderer(GLFWwindow *window);
-		virtual ~Renderer();
 
-		void Init();
-		void BeginFrame();
-		void EndFrame();
+	}
 
-		void Draw(GeometryHandle *geometryHandle, Effect *effect);
+	GeometryHandle::~GeometryHandle()
+	{
+		// Ought to delete the buffers here or something.
+	}
+	
+	const uint32_t GeometryHandle::GetVao() const
+	{
+		return vao;
+	}
 
-		std::unique_ptr<GeometryHandle> CreateGeometryHandle(GeometryInfo& geometryInfo);
-		std::unique_ptr<Effect> CreateEffect(std::string vsPath, std::string fsPath);
+	const uint32_t GeometryHandle::GetPositionBuffer() const
+	{
+		return posBuf;
+	}
 
+	const uint32_t GeometryHandle::GetColorBuffer() const
+	{
+		return colBuf;
+	}
 
-		
+	const uint32_t GeometryHandle::GetTexCoordBuffer() const
+	{
+		return tcBuf;
+	}
 
-	private:
-		GLFWwindow *window;
-	};
+	const uint32_t GeometryHandle::GetIndexBuffer() const
+	{
+		return idxBuf;
+	}
+
+	const uint32_t GeometryHandle::GetNumIndices() const
+	{
+		return numIndices;
+	}
+
 }
-
-#endif // __RENDERER_H__

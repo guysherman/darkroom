@@ -1,0 +1,104 @@
+/*
+  Darkroom is an open-source photography tool.
+  Copyright (C) 2017  Guy Sherman
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Contact the author via https://github.com/guysherman
+*/
+
+
+// C++ Standard Headers
+
+// C Standard Headers
+
+
+// Boost Headers
+
+// 3rd Party Headers
+
+
+// GTK Headers
+
+
+// Our Headers
+#include "RenderInterfaceGLFW.h"
+#include "linmath.h"
+
+namespace darkroom
+{
+  
+  class RocketGLFWRendererGeometryHandler
+  {
+  public:
+    GLuint VertexID, IndexID;
+    int NumVertices;
+    Rocket::Core::TextureHandle Texture;
+
+    RocketGLFWRendererGeometryHandler() : VertexID(0), IndexID(0), Texture(0), NumVertices(0)
+    {
+    };
+
+    ~RocketGLFWRendererGeometryHandler()
+    {
+      if(VertexID)
+        glDeleteBuffers(1, &VertexID);
+
+      if(IndexID)
+        glDeleteBuffers(1, &IndexID);
+
+      VertexID = IndexID = 0;
+    };
+  };
+  
+  struct RocketGLFWRendererVertex
+  {
+    vec2 Position, TexCoord;
+    vec4 Color;
+  };
+
+  RocketGLFWRenderer::RocketGLFWRenderer()
+  {
+
+  }
+
+  void RocketGLFWRenderer::SetWindow(GLFWwindow *window)
+  {
+    this->window = window;
+  }
+
+  GLFWwindow *RocketGLFWRenderer::GetWindow()
+  {
+    return this->window;
+  }
+
+  void RocketGLFWRenderer::Resize()
+  {
+    int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, width, height, 0, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+  }
+
+  void RocketGLFWRenderer::RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
+  {
+    
+  }
+
+}

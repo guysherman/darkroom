@@ -1,3 +1,5 @@
+#ifndef __NODE_H__
+#define __NODE_H__
 /*
   Darkroom is an open-source photography tool.
   Copyright (C) 2017  Guy Sherman
@@ -19,7 +21,11 @@
   Contact the author via https://github.com/guysherman
 */
 
+
 // C++ Standard Headers
+#include <string>
+#include <memory>
+#include <vector>
 
 // C Standard Headers
 
@@ -27,76 +33,33 @@
 // Boost Headers
 
 // 3rd Party Headers
+#include "linmath.h"
 
 
 // GTK Headers
 
 
 // Our Headers
-#include <cstring>
-#include "Canvas.h"
+
 
 
 namespace darkroom
 {
-	Canvas::Canvas(float w, float h) : sizeDirty(true)
+	class Node
 	{
-		size[0] = w;
-		size[1] = h;
-	}
+  	public:
+		const float *GetPosition() const;
+		const float *GetRotation() const;
+		const float *GetScale() const;
+		const std::vector< std::shared_ptr<Node> > &GetChildren() const;
+  
+	protected:
+		vec3 position;
+		vec3 rotation;
+		vec3 scale;
+		std::vector< std::shared_ptr<Node> > children;
 
-	Canvas::~Canvas()
-	{
-
-	}
-
-	float *Canvas::GetSize()
-	{
-		return (float*) size;
-	}
-
-	void Canvas::SetSize(float w, float h)
-	{
-		size[0] = w;
-		size[1] = h;
-		sizeDirty = true;
-	}
-
-	bool Canvas::GetSizeDirty()
-	{
-		return sizeDirty;
-	}
-
-	void Canvas::setupVertices()
-	{
-		float verts[20] = { 0.0f,       0.0f, 0.0f, 0.0f, 0.0f,
-					 		0.0f,    size[1], 0.0f, 0.0f, 1.0f,
-							size[0], size[1], 0.0f, 1.0f, 1.0f,
-				 	 		size[0],    0.0f, 0.0f, 1.0f, 0.0f};
-		memcpy(&this->vertices, verts, 30 * sizeof(float));
-
-		unsigned int inds[6] = { 0, 1, 2, 2, 3, 0 };
-		memcpy(&this->indices, inds, 6 * sizeof(int));
-		sizeDirty = false;
-	}
-
-	float *Canvas::GetVertices()
-	{
-		if (sizeDirty)
-		{
-			setupVertices();
-		}
-		return vertices;
-	}
-
-	unsigned int *Canvas::GetIndices()
-	{
-		if (sizeDirty)
-		{
-			setupVertices();
-		}
-		return indices;
-	}
-
-
+	};
 }
+
+#endif // __NODE_H__

@@ -60,7 +60,7 @@ def build(bld):
 	bld.env = bld.all_envs['main']
 	bld.program(source = bld.path.ant_glob('src/**/*.c*'),
 				includes = ['./include'],
-				cxxflags=['-pedantic-errors'],
+				cxxflags=['-pedantic-errors', '-fPIC'],
 				ldflags=linkerflags,
 				lib = libs,
 				target = 'darkroom',

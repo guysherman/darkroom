@@ -21,9 +21,8 @@
 #include <iostream>
 #include <memory>
 #include "linmath.h"
-#include "Canvas.h"
-#include "CanvasView.h"
 #include "AppDelegate.h"
+
 
 
 int main() {
