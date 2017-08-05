@@ -30,6 +30,10 @@
 
 // 3rd Party Headers
 #include "linmath.h"
+#include <Rocket/Core.h>
+#include <Rocket/Core/Input.h>
+#include <Rocket/Debugger/Debugger.h>
+
 
 // GTK Headers
 
@@ -40,6 +44,10 @@
 #include "AppDelegate.h"
 #include "Renderer.h"
 #include "GeometryHandle.h"
+#include "RenderInterfaceGLFW.h"
+#include "SystemInterfaceGLFW.h"
+#include "ShellFileInterface.h"
+
 
 
 namespace darkroom
@@ -115,6 +123,19 @@ namespace darkroom
 
 		renderer = std::shared_ptr<Renderer>(new Renderer(window));
 		renderer->Init();
+		rocketRenderer = std::shared_ptr<RocketGLFWRenderer>(new RocketGLFWRenderer());
+		rocketRenderer->SetWindow(window);
+		rocketRenderer->SetRenderer(renderer);
+
+		systemInterface = std::shared_ptr<RocketGLFWSystemInterface>(new RocketGLFWSystemInterface());
+		fileInterface = std::shared_ptr<ShellFileInterface>(new ShellFileInterface("./assets/"));
+
+		Rocket::Core::SetFileInterface(fileInterface.get());
+		Rocket::Core::SetRenderInterface(rocketRenderer.get());
+		Rocket::Core::SetSystemInterface(systemInterface.get());
+
+		
+
 		lastMousePos[0] = lastMousePos[1] = 0.0f;
 		lastScrollPos[0] = lastScrollPos[1] = 0.0f;
 	}
@@ -142,7 +163,7 @@ namespace darkroom
 
 	void AppDelegate::MousePositionEvent(GLFWwindow *window, double xpos, double ypos)
 	{
-		vec2 to = {(float)xpos, (float)ypos};
+		// vec2 to = {(float)xpos, (float)ypos};
 
 		lastMousePos[0] = xpos;
 		lastMousePos[1] = ypos;
@@ -150,7 +171,7 @@ namespace darkroom
 
 	void AppDelegate::ScrollEvent(GLFWwindow *window, double xoffset, double yoffset)
 	{
-		vec2 to = {(float)xoffset * SCROLL_SENSITIVITY, (float)yoffset * SCROLL_SENSITIVITY};
+		// vec2 to = {(float)xoffset * SCROLL_SENSITIVITY, (float)yoffset * SCROLL_SENSITIVITY};
 
 		lastScrollPos[0] = xoffset;
 		lastScrollPos[1] = yoffset;
@@ -158,12 +179,15 @@ namespace darkroom
 
 	void AppDelegate::Run()
 	{
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+		
 		float points[] = 
 		{
-			-0.5f,  0.5f, 0.0f, 
-			 0.5f,  0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			-0.5f, -0.5f, 0.0f,
+			-0.5f,  0.5f,
+			 0.5f,  0.5f, 
+			 0.5f, -0.5f,
+			-0.5f, -0.5f
 		};
 
 		float colors[] = 
@@ -199,12 +223,40 @@ namespace darkroom
 		auto gh = renderer->CreateGeometryHandle(gi);
 		auto effect = renderer->CreateEffect("assets/basic_vs.glsl", "assets/basic_fs.glsl");
 		
+		if(!Rocket::Core::Initialise())
+		{
+			return;
+		}
+
+		Rocket::Core::FontDatabase::LoadFontFace("Delicious-Bold.otf");
+		Rocket::Core::FontDatabase::LoadFontFace("Delicious-BoldItalic.otf");
+		Rocket::Core::FontDatabase::LoadFontFace("Delicious-Italic.otf");
+		Rocket::Core::FontDatabase::LoadFontFace("Delicious-Roman.otf");
+
+		Rocket::Core::Context *Context = Rocket::Core::CreateContext("default",
+		Rocket::Core::Vector2i(width, height));
+
+		Rocket::Debugger::Initialise(Context);
+
+		Rocket::Core::ElementDocument *Document = Context->LoadDocument("demo.rml");
+
+		if(Document)
+		{
+			Document->Show();
+			Document->RemoveReference();
+			fprintf(stdout, "\nDocument loaded");
+		}
+		else
+		{
+			fprintf(stdout, "\nDocument is NULL");
+		}
 		
 		while ( !glfwWindowShouldClose( window ) )
 		{
 			renderer->BeginFrame();
 			
 			renderer->Draw(gh.get(), effect.get());
+			Context->Render();
 		
 			glfwWaitEventsTimeout(0.016);
 			renderer->EndFrame();

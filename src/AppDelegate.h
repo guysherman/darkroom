@@ -47,10 +47,13 @@
 #define SCROLL_SENSITIVITY 0.05f
 #endif
 
+class ShellFileInterface;
 
 namespace darkroom
 {
 	class Renderer;
+	class RocketGLFWRenderer;
+	class RocketGLFWSystemInterface;
 	
 	class AppDelegate
 	{
@@ -70,6 +73,10 @@ namespace darkroom
 	private:
 		GLFWwindow* window;
 		std::shared_ptr<Renderer> renderer;
+		std::shared_ptr<RocketGLFWRenderer> rocketRenderer;
+		std::shared_ptr<RocketGLFWSystemInterface> systemInterface;
+		std::shared_ptr<ShellFileInterface> fileInterface;
+
 		vec2 lastMousePos;
 		vec2 lastScrollPos;
 

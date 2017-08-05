@@ -44,6 +44,7 @@ def configure(conf):
 	conf.env.CXXFLAGS = ['-Wall', '-g', '-std=c++11']
 	conf.check_cfg(package='glfw3', uselib_store='GLFW', args=['--cflags', '--libs'])
 	conf.check_cfg(package='glew', uselib_store='GLEW', args=['--cflags', '--libs'])
+	conf.check_cfg(package='freetype2', uselib_store='FT', args=['--cflags', '--libs'])
 	if sys.platform == 'darwin':
 		conf.env.LIBPATH_BOOST = ['/usr/local/lib']
 		conf.env.INCLUDES_BOOST = ['/usr/local/include']
@@ -65,7 +66,7 @@ def build(bld):
 				lib = libs,
 				target = 'darkroom',
 				install_path = '${BINDIR}',
-				use=['GLEW', 'GLFW', 'BOOST', 'ROCKET'],
+				use=['GLEW', 'GLFW', 'BOOST', 'FT', 'ROCKET'],
 				defines = defines,
 				features="cxx cxxprogram")
 

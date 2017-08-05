@@ -17,11 +17,13 @@
                     "/usr/local/include",
                     "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.1.0/include",
                     "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
-                    "/usr/include"
+                    "/usr/include",
+                    "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "intelliSenseMode": "clang-x64"
         },
         {
             "name": "Linux",
@@ -29,17 +31,46 @@
                 "${workspaceRoot}",
                 "${workspaceRoot}/src",
                 "/usr/include",
-                "/usr/local/include"
+                "/usr/local/include",
+                "/usr/local/include/Rocket",
+                "/usr/local/include/Rocket/Controls",
+                "/usr/local/include/Rocket/Core",
+                "/usr/local/include/Rocket/Core/BitmapFont",
+                "/usr/local/include/Rocket/Core/FreeType",
+                "/usr/local/include/Rocket/Debugger",
+                "/usr/include/c++/7.1.1",
+                "/usr/include/c++/7.1.1/backward",
+                "/usr/include/c++/7.1.1/bits",
+                "/usr/include/c++/7.1.1/debug",
+                "/usr/include/c++/7.1.1/decimal",
+                "/usr/include/c++/7.1.1/experimental",
+                "/usr/include/c++/7.1.1/experimental/bits",
+                "/usr/include/c++/7.1.1/ext",
+                "/usr/include/c++/7.1.1/ext/pb_ds",
+                "/usr/include/c++/7.1.1/parallel",
+                "/usr/include/c++/7.1.1/profile",
+                "/usr/include/c++/7.1.1/profile/impl",
+                "/usr/include/c++/7.1.1/tr1",
+                "/usr/include/c++/7.1.1/tr2",
+                "/usr/include/c++/7.1.1/x86_64-pc-linux-gnu",
+                "/usr/include/c++/7.1.1/x86_64-pc-linux-gnu/bits",
+                "/usr/include/c++/7.1.1/x86_64-pc-linux-gnu/ext",
+                "/usr/include/linux"
+                
+
             ],
             "defines": [],
             "browse": {
                 "path": [
                     "/usr/include",
-                    "/usr/local/include"
+                    "/usr/local/include",
+                    "${workspaceRoot}",
+                    "${workspaceRoot}/src"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "intelliSenseMode": "clang-x64"
         },
         {
             "name": "Win32",
@@ -53,11 +84,14 @@
             ],
             "browse": {
                 "path": [
-                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*"
+                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
+                    "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "intelliSenseMode": "msvc-x64"
         }
-    ]
+    ],
+    "version": 2
 }

@@ -102,7 +102,7 @@ namespace darkroom
 		glEnableVertexAttribArray( 2 );
 
 		glBindBuffer(GL_ARRAY_BUFFER, posBuffer);
-		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL );
+		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL );
 
 		glBindBuffer(GL_ARRAY_BUFFER, colBuffer);
 		glVertexAttribPointer( 1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), NULL );
@@ -139,66 +139,6 @@ namespace darkroom
 		return effect;
 	}
 
-	// std::shared_ptr<CanvasView> Renderer::CreateCanvasView(std::shared_ptr<Canvas> canvas)
-	// {
-
-	// 	int width, height;
-	// 	glfwGetFramebufferSize(window, &width, &height);
-
-	// 	std::string vsSource = File::ReadAllText("assets/basic_vs.glsl");
-	// 	std::string fsSource = File::ReadAllText("assets/basic_fs.glsl");
-	// 	const char *srcVs = vsSource.c_str();
-	// 	const char *srcFs = fsSource.c_str();
-
-	// 	glfwMakeContextCurrent(window);
-
-	// 	GLuint vbo;
-	// 	float *vertices = canvas->GetVertices();
-	// 	glGenBuffers( 1, &vbo );
-	// 	glBindBuffer( GL_ARRAY_BUFFER, vbo );
-	// 	glBufferData( GL_ARRAY_BUFFER, 30 * sizeof( GLfloat ), vertices, GL_STATIC_DRAW );
-
-	// 	GLuint ibo;
-	// 	unsigned int *indices = canvas->GetIndices();
-	// 	glGenBuffers( 1, &ibo );
-	// 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ibo );
-	// 	glBufferData( GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof( GLuint ), indices, GL_STATIC_DRAW );
-
-	// 	GLuint vao;
-	// 	glGenVertexArrays( 1, &vao );
-	// 	glBindVertexArray( vao );
-
-	// 	glEnableVertexAttribArray( 0 );
-	// 	glEnableVertexAttribArray( 1 );
-
-	// 	glBindBuffer( GL_ARRAY_BUFFER, vbo );
-
-	// 	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL );
-	// 	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(sizeof(float) * 2) );
-	// 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ibo );
-
-	// 	/* GL shader objects for vertex and fragment shader [components] */
-	// 	GLuint vs, fs;
-	// 	/* GL shader programme object [combined, to link] */
-	// 	GLuint shader_programme;
-
-	// 	vs = glCreateShader( GL_VERTEX_SHADER );
-	// 	glShaderSource( vs, 1, &srcVs, NULL );
-	// 	glCompileShader( vs );
-
-	// 	fs = glCreateShader( GL_FRAGMENT_SHADER );
-	// 	glShaderSource( fs, 1, &srcFs, NULL );
-	// 	glCompileShader( fs );
-
-	// 	shader_programme = glCreateProgram();
-	// 	glAttachShader( shader_programme, fs );
-	// 	glAttachShader( shader_programme, vs );
-	// 	glLinkProgram( shader_programme );
-
-	// 	std::shared_ptr<CanvasView> result(new CanvasView(canvas, width, height, vao, vbo, ibo, vs, fs, shader_programme));
-	// 	return result;
-	// }
-
 	void Renderer::BeginFrame()
 	{
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -207,6 +147,18 @@ namespace darkroom
 	void Renderer::EndFrame()
 	{
 		glfwSwapBuffers( window );
+		EmptyTrash();
+	}
+
+	void Renderer::EmptyTrash()
+	{
+		for (auto it = trashedGeometry.begin(); it != trashedGeometry.end(); ++it)
+		{
+			auto gh = it->get();
+			FreeGeometryHandle(gh);
+		}
+		
+		trashedGeometry.clear();
 	}
 
 	void Renderer::Draw(GeometryHandle *geometryHandle, Effect *effect)
@@ -227,4 +179,29 @@ namespace darkroom
 
 		glDrawElements( GL_TRIANGLES, geometryHandle->GetNumIndices(), GL_UNSIGNED_INT, (void*)0  );
 	}
+
+	void Renderer::TrashGeometryHandle(std::unique_ptr<GeometryHandle> geometryHandle)
+	{
+		trashedGeometry.push_back(std::move(geometryHandle));
+	}
+	
+	void Renderer::FreeGeometryHandle(GeometryHandle *handle)
+	{
+		GLuint vao = handle->GetVao();
+		glDeleteVertexArrays(1, &vao);
+
+		GLuint posBuf = handle->GetPositionBuffer();
+		glDeleteBuffers(1, &posBuf);
+
+		GLuint colBuf = handle->GetColorBuffer();
+		glDeleteBuffers(1, &colBuf);
+
+		GLuint tcBuf = handle->GetTexCoordBuffer();
+		glDeleteBuffers(1, &tcBuf);
+
+		GLuint idxBuf = handle->GetIndexBuffer();
+		glDeleteBuffers(1, &idxBuf);
+	}
+
+	
 }

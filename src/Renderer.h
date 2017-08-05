@@ -27,6 +27,7 @@
 // C++ Standard Headers
 #include <memory>
 #include <string>
+#include <vector>
 
 // C Standard Headers
 
@@ -60,15 +61,22 @@ namespace darkroom
 		void EndFrame();
 
 		void Draw(GeometryHandle *geometryHandle, Effect *effect);
+		void TrashGeometryHandle(std::unique_ptr<GeometryHandle> geometryHandle);
+		
 
 		std::unique_ptr<GeometryHandle> CreateGeometryHandle(GeometryInfo& geometryInfo);
 		std::unique_ptr<Effect> CreateEffect(std::string vsPath, std::string fsPath);
+
+		void FreeGeometryHandle(GeometryHandle *handle);
 
 
 		
 
 	private:
+		void EmptyTrash();
+		
 		GLFWwindow *window;
+		std::vector< std::unique_ptr<GeometryHandle> > trashedGeometry;
 	};
 }
 
