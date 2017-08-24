@@ -48,8 +48,23 @@ namespace darkroom
 {
 	struct GeometryInfo;
 	class GeometryHandle;
+	class TextureHandle;
 	
-	
+	enum TextureUnit
+	{
+		Unit0 = GL_TEXTURE0
+	};
+
+	enum TextureFormat
+	{
+		RGBA = GL_RGBA
+	};
+
+	enum TextureType
+	{
+		UBYTE = GL_UNSIGNED_BYTE
+	};
+
 	class Renderer
 	{
 	public:
@@ -60,16 +75,17 @@ namespace darkroom
 		void BeginFrame();
 		void EndFrame();
 
-		void Draw(GeometryHandle *geometryHandle, Effect *effect);
+		void Draw(GeometryHandle *geometryHandle, Effect *effect, TextureHandle *texture, float *mvp);
 		void TrashGeometryHandle(std::unique_ptr<GeometryHandle> geometryHandle);
 		
 
 		std::unique_ptr<GeometryHandle> CreateGeometryHandle(GeometryInfo& geometryInfo);
 		std::unique_ptr<Effect> CreateEffect(std::string vsPath, std::string fsPath);
+		std::unique_ptr<TextureHandle> GenerateTexture2D(uint32_t textureUnit, uint32_t format, uint32_t type, uint32_t width, uint32_t height, const unsigned char* data);
 
 		void FreeGeometryHandle(GeometryHandle *handle);
 
-
+		uint32_t GetGlTextureUnit(uint32_t textureUnit);
 		
 
 	private:

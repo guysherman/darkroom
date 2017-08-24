@@ -48,6 +48,7 @@
 namespace darkroom
 {
 	class GeometryHandle;
+	class TextureHandle;
 
 	class RocketGLFWRenderer : public Rocket::Core::RenderInterface
 	{
@@ -93,8 +94,10 @@ namespace darkroom
 		std::weak_ptr<Renderer> renderer;
 		std::unique_ptr<Effect> effect;
 		uint32_t nextGeometryHandleId;
+		uint32_t nextTextureId;
 		std::map< int, std::unique_ptr< GeometryHandle > > compiledGeometryHandles;
-		RocketGLFWRenderer *rocketRenderer;
+		std::map< int, std::unique_ptr< TextureHandle > > textureHandles;
+		//RocketGLFWRenderer *rocketRenderer;
 	};
 }
 

@@ -44,6 +44,7 @@
 #include "AppDelegate.h"
 #include "Renderer.h"
 #include "GeometryHandle.h"
+#include "TextureHandle.h"
 #include "RenderInterfaceGLFW.h"
 #include "SystemInterfaceGLFW.h"
 #include "ShellFileInterface.h"
@@ -184,10 +185,10 @@ namespace darkroom
 		
 		float points[] = 
 		{
-			-0.5f,  0.5f,
-			 0.5f,  0.5f, 
-			 0.5f, -0.5f,
-			-0.5f, -0.5f
+			  0.0f,  100.0f,
+			100.0f,  100.0f, 
+			100.0f,    0.0f,
+			  0.0f,    0.0f
 		};
 
 		float colors[] = 
@@ -200,17 +201,24 @@ namespace darkroom
 
 		float texCoords[] = 
 		{
+			0.0f, 0.0f,
+			1.0f, 0.0f,
 			1.0f, 1.0f,
-			1.0f, 1.0f,
-			1.0f, 1.0f,
-			1.0f, 1.0f
+			0.0f, 1.0f
 		};
 
 		uint32_t indices[] = 
 		{
-			0, 1, 2,
-			0, 2, 3
+			0, 3, 2,
+			0, 2, 1
 		};
+
+		unsigned char pixels[] =
+		{
+			255, 255, 255, 0, 255, 255, 255, 255,
+			255, 255, 255, 255, 255, 255, 255, 0
+		};
+
 
 		GeometryInfo gi;
 		gi.positions = &points[0];
@@ -220,7 +228,14 @@ namespace darkroom
 		gi.numVertices = 4;
 		gi.numIndices = 6;
 
+		
+		auto tx = renderer->GenerateTexture2D(Unit0, RGBA, UBYTE, 2, 2, &pixels[0]);
+
 		auto gh = renderer->CreateGeometryHandle(gi);
+		auto gh2 = renderer->CreateGeometryHandle(gi);
+		auto gh3 = renderer->CreateGeometryHandle(gi);
+		auto gh4 = renderer->CreateGeometryHandle(gi);
+
 		auto effect = renderer->CreateEffect("assets/basic_vs.glsl", "assets/basic_fs.glsl");
 		
 		if(!Rocket::Core::Initialise())
@@ -253,9 +268,41 @@ namespace darkroom
 		
 		while ( !glfwWindowShouldClose( window ) )
 		{
-			renderer->BeginFrame();
 			
-			renderer->Draw(gh.get(), effect.get());
+			glfwGetFramebufferSize(window, &width, &height);
+
+			
+			mat4x4 m;
+			mat4x4 p;
+			mat4x4 mvp;
+			
+			
+
+
+			renderer->BeginFrame();
+
+			mat4x4_identity(m);
+			mat4x4_translate(m, 100.0f, 100.0f, 0.0f);
+			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			mat4x4_mul(mvp, p, m);
+			renderer->Draw(gh.get(), effect.get(), tx.get(), (float *)mvp);
+			mat4x4_identity(m);
+			mat4x4_translate(m, 400.0f, 100.0f, 0.0f);
+			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			mat4x4_mul(mvp, p, m);
+			renderer->Draw(gh2.get(), effect.get(), tx.get(), (float *)mvp);
+			mat4x4_identity(m);
+			mat4x4_translate(m, 800.0f, 100.0f, 0.0f);
+			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			mat4x4_mul(mvp, p, m);
+			renderer->Draw(gh3.get(), effect.get(), tx.get(), (float *)mvp);
+			mat4x4_identity(m);
+			mat4x4_translate(m, 1200.0f, 100.0f, 0.0f);
+			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			mat4x4_mul(mvp, p, m);
+			renderer->Draw(gh4.get(), effect.get(), tx.get(), (float *)mvp);
+
+
 			Context->Render();
 		
 			glfwWaitEventsTimeout(0.016);

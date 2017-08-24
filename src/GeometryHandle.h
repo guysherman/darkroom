@@ -55,7 +55,7 @@ namespace darkroom
 	class GeometryHandle
 	{
 	public:
-		GeometryHandle(uint32_t vao, uint32_t posBuf, uint32_t colBuf, uint32_t tcBuf, uint32_t idxBuf, uint32_t numIndices);
+		GeometryHandle(uint32_t vao, uint32_t posBuf, uint32_t colBuf, uint32_t tcBuf, uint32_t idxBuf, uint32_t numIndices, uint32_t textureHandleId);
 		virtual ~GeometryHandle();
 		
 		const uint32_t GetVao() const;
@@ -64,6 +64,8 @@ namespace darkroom
 		const uint32_t GetTexCoordBuffer() const;
 		const uint32_t GetIndexBuffer() const;
 		const uint32_t GetNumIndices() const;
+		const uint32_t GetTextureHandleId() const;
+		void SetTextureHandleId(uint32_t id);
 	
 	protected:
 		uint32_t vao;
@@ -72,6 +74,7 @@ namespace darkroom
 		uint32_t tcBuf;
 		uint32_t idxBuf;
 		uint32_t numIndices;
+		uint32_t textureHandleId;
 	};
 }
 

@@ -21,6 +21,8 @@
 
 
 // C++ Standard Headers
+#include <iostream>
+#include <sstream>
 
 // C Standard Headers
 
@@ -29,6 +31,7 @@
 
 // 3rd Party Headers
 #include <Rocket/Core/Core.h>
+#include <tga.h>
 
 // GTK Headers
 
@@ -37,6 +40,8 @@
 #include "RenderInterfaceGLFW.h"
 #include "linmath.h"
 #include "GeometryHandle.h"
+#include "TextureHandle.h"
+#include "pngutils.h"
 
 namespace darkroom
 {
@@ -44,6 +49,7 @@ namespace darkroom
 	RocketGLFWRenderer::RocketGLFWRenderer()
 	{
 		nextGeometryHandleId = 1;
+		nextTextureId = 1;
 	}
 
 	RocketGLFWRenderer::~RocketGLFWRenderer()
@@ -84,10 +90,26 @@ namespace darkroom
 
 	void RocketGLFWRenderer::RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
 	{
+		
+		
 		float *positions = new float[num_vertices * 2];
 		float *colors = new float[num_vertices * 4];
 		float *texCoords = new float[num_vertices * 2];
 		uint32_t *uindices = new uint32_t[num_indices];
+
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+
+		mat4x4 m;
+		mat4x4_identity(m);
+
+		mat4x4_translate(m, translation.x, translation.y, 0.0f);
+
+		mat4x4 p;
+		mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+
+		mat4x4 mvp;		
+		mat4x4_mul(mvp, p, m);
 
 		for (int i = 0; i < num_vertices; ++i) 
 		{
@@ -125,8 +147,15 @@ namespace darkroom
 
 		std::shared_ptr<Renderer> renderRef = renderer.lock();
 		auto gh = renderRef->CreateGeometryHandle(gi);
-		renderRef->Draw(gh.get(), effect.get());
-		renderRef->TrashGeometryHandle(std::move(gh));
+
+		auto tx = textureHandles.find((uint32_t)texture);
+		if (tx != textureHandles.begin() && tx != textureHandles.end())
+		{
+			renderRef->Draw(gh.get(), effect.get(), tx->second.get(), (float *)m);
+			renderRef->TrashGeometryHandle(std::move(gh));
+		}
+
+		
 
 		// TODO: translation
 		// TODO: texture
@@ -184,6 +213,7 @@ namespace darkroom
 
 		std::shared_ptr<Renderer> renderRef = renderer.lock();
 		auto gh = renderRef->CreateGeometryHandle(gi);
+		gh->SetTextureHandleId((uint32_t)texture);
 		uint32_t id = nextGeometryHandleId++;
 
 		compiledGeometryHandles.insert(std::make_pair(id, std::move(gh)));
@@ -202,12 +232,43 @@ namespace darkroom
 	/// Called by Rocket when it wants to render application-compiled geometry.
 	void RocketGLFWRenderer::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometry, const Rocket::Core::Vector2f& translation)
 	{
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+
+		mat4x4 m;
+		mat4x4_identity(m);
+
+		mat4x4_translate(m, translation.x, translation.y, 0.0f);
+
+		mat4x4 p;
+		mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+
+		mat4x4 mvp;		
+		mat4x4_mul(mvp, p, m);
+		
 		auto it = compiledGeometryHandles.find((uint32_t)geometry);
-		if (it != compiledGeometryHandles.begin() 
-			&& it != compiledGeometryHandles.end())
+		if (it != compiledGeometryHandles.end())
 		{
-			std::shared_ptr<Renderer> renderRef = renderer.lock();
-			renderRef->Draw(it->second.get(), effect.get());
+			std::cout << "Rendering with texture: " << it->second.get()->GetTextureHandleId() << std::endl;
+			
+			auto tx = textureHandles.find(it->second.get()->GetTextureHandleId());
+			if (tx != textureHandles.end())
+			{
+				std::shared_ptr<Renderer> renderRef = renderer.lock();
+				renderRef->Draw(it->second.get(), effect.get(), tx->second.get(), (float *)mvp);
+			}
+			else
+			{
+				std::cout << "Couldn't find texture: " << it->second.get()->GetTextureHandleId() << std::endl;
+				std::shared_ptr<Renderer> renderRef = renderer.lock();
+				renderRef->Draw(it->second.get(), effect.get(), nullptr, (float *)mvp);
+			}
+			
+			
+		}
+		else 
+		{
+			std::cout << "Couldn't find geometry: " << (int)geometry;
 		}
 	}
 
@@ -249,15 +310,57 @@ namespace darkroom
 	// Called by Rocket when a texture is required by the library.
 	bool RocketGLFWRenderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
 	{
-		texture_handle = (Rocket::Core::TextureHandle) 1;
-		texture_dimensions = Rocket::Core::Vector2i(1, 1);
+		// std::shared_ptr<Renderer> renderRef = renderer.lock();
+		// auto th = renderRef->GenerateTexture2D(Unit0, RGBA, UBYTE, 512, 512, &big_image[0]);
+		// uint32_t id = nextTextureId++;
+
+		// std::cout << "Just generated texture: " << id << std::endl;
+
+		// textureHandles.insert(std::make_pair(id, std::move(th)));
+		
+		// std::stringstream fname;
+ 
+		// fname << "out-" << id << ".png";
+
+		//writeImage(fname.str().c_str(), 512, 512, &big_image[0], "Out");
+		
+		texture_handle = (Rocket::Core::TextureHandle)0;
+		texture_dimensions.x = 1;
+		texture_dimensions.y = 1;
+
 		return true;
 	}
 	
 	/// Called by Rocket when a texture is required to be built from an internally-generated sequence of pixels.
 	bool RocketGLFWRenderer::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const Rocket::Core::byte* source, const Rocket::Core::Vector2i& source_dimensions)
 	{
-		texture_handle = (Rocket::Core::TextureHandle) 1;
+		
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		// glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		
+		// // set the maximum!
+		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_aniso );
+		
+		std::shared_ptr<Renderer> renderRef = renderer.lock();
+		auto th = renderRef->GenerateTexture2D(Unit0, RGBA, UBYTE, source_dimensions.x, source_dimensions.y, source);
+		uint32_t id = nextTextureId++;
+
+		std::cout << "Just generated texture: " << id << std::endl;
+
+		textureHandles.insert(std::make_pair(id, std::move(th)));
+		
+		
+		
+		texture_handle = (Rocket::Core::TextureHandle)id;
+		
+		std::stringstream fname;
+		fname << "out-" << id << ".png";
+
+
+		writeImage(fname.str().c_str(), source_dimensions.x, source_dimensions.y, source, "Out");
+
 		return true;
 	}
 	

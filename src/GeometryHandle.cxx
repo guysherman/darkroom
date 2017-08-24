@@ -44,13 +44,15 @@ namespace darkroom
 		uint32_t colBuf, 
 		uint32_t tcBuf, 
 		uint32_t idxBuf, 
-		uint32_t numIndices) :
+		uint32_t numIndices,
+		uint32_t textureHandleId) :
 		vao(vao),
 		posBuf(posBuf),
 		colBuf(colBuf),
 		tcBuf(tcBuf),
 		idxBuf(idxBuf),
-		numIndices(numIndices) 
+		numIndices(numIndices),
+		textureHandleId(textureHandleId)
 	{
 
 	}
@@ -88,6 +90,16 @@ namespace darkroom
 	const uint32_t GeometryHandle::GetNumIndices() const
 	{
 		return numIndices;
+	}
+
+	const uint32_t GeometryHandle::GetTextureHandleId() const
+	{
+		return textureHandleId;
+	}
+
+	void GeometryHandle::SetTextureHandleId(uint32_t textureHandleId)
+	{
+		this->textureHandleId = textureHandleId;
 	}
 
 }

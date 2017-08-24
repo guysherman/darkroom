@@ -23,6 +23,7 @@
 #include <GLFW/glfw3.h>
 
 // C++ Standard Headers
+#include <iostream>
 
 // C Standard Headers
 #include <cstdio>
@@ -39,7 +40,59 @@
 #include "File.h"
 #include "Renderer.h"
 #include "GeometryHandle.h"
+#include "TextureHandle.h"
 #include "Effect.h"
+
+void APIENTRY openglCallbackFunction(GLenum source,
+                                           GLenum type,
+                                           GLuint id,
+                                           GLenum severity,
+                                           GLsizei length,
+                                           const GLchar* message,
+										   const void* userParam){
+	
+	std::cout << "---------------------opengl-callback-start------------" << std::endl;
+	std::cout << "message: "<< message << std::endl;
+	std::cout << "type: ";
+	switch (type) {
+	case GL_DEBUG_TYPE_ERROR:
+		std::cout << "ERROR";
+		break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		std::cout << "DEPRECATED_BEHAVIOR";
+		break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		std::cout << "UNDEFINED_BEHAVIOR";
+		break;
+	case GL_DEBUG_TYPE_PORTABILITY:
+		std::cout << "PORTABILITY";
+		break;
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		std::cout << "PERFORMANCE";
+		break;
+	case GL_DEBUG_TYPE_OTHER:
+		std::cout << "OTHER";
+		break;
+	}
+	std::cout << std::endl;
+
+	std::cout << "id: "<<id << std::endl;
+	std::cout << "severity: ";
+	switch (severity){
+	case GL_DEBUG_SEVERITY_LOW:
+		std::cout << "LOW";
+		break;
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		std::cout << "MEDIUM";
+		break;
+	case GL_DEBUG_SEVERITY_HIGH:
+		std::cout << "HIGH";
+		break;
+	}
+	std::cout << std::endl;
+std::cout << "---------------------opengl-callback-end--------------" << std::endl;
+}
+
 
 namespace darkroom
 {
@@ -67,6 +120,19 @@ namespace darkroom
 		version = glGetString( GL_VERSION );	 /* version as a string */
 		printf( "Renderer: %s\n", renderer );
 		printf( "OpenGL version supported %s\n", version );
+
+		if(glDebugMessageCallback){
+			std::cout << "Register OpenGL debug callback " << std::endl;
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(openglCallbackFunction, nullptr);
+			GLuint unusedIds = 0;
+			glDebugMessageControl(GL_DONT_CARE,
+				GL_DONT_CARE,
+				GL_DONT_CARE,
+				0,
+				&unusedIds,
+				true);
+		}
 	}
 
 	std::unique_ptr<GeometryHandle> Renderer::CreateGeometryHandle(GeometryInfo& geometryInfo)
@@ -112,7 +178,7 @@ namespace darkroom
 
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, idxBuffer );
 
-		auto result = std::unique_ptr<GeometryHandle>(new GeometryHandle(vao, posBuffer, colBuffer, tcBuffer, idxBuffer, geometryInfo.numIndices));
+		auto result = std::unique_ptr<GeometryHandle>(new GeometryHandle(vao, posBuffer, colBuffer, tcBuffer, idxBuffer, geometryInfo.numIndices, 0));
 		return result;
 	}
 
@@ -139,9 +205,58 @@ namespace darkroom
 		return effect;
 	}
 
+	std::unique_ptr<TextureHandle> Renderer::GenerateTexture2D(
+		uint32_t textureUnit,
+		uint32_t format,
+		uint32_t type,
+		uint32_t width,
+		uint32_t height,
+		const unsigned char* data)
+	{
+		GLuint tex;
+		
+		glGenTextures( 1, &tex );
+		glActiveTexture( GetGlTextureUnit(textureUnit) );
+		glBindTexture( GL_TEXTURE_2D, tex );
+		glTexImage2D( GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data);
+		glGenerateMipmap( GL_TEXTURE_2D );
+		GLfloat max_aniso = 0.0f;
+		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_aniso );
+
+		auto texture = std::unique_ptr<TextureHandle>(new TextureHandle(
+			tex,
+			textureUnit,
+			GL_TEXTURE_2D,
+			format,
+			format,
+			type,
+			GL_CLAMP_TO_EDGE,
+			GL_CLAMP_TO_EDGE,
+			GL_LINEAR,
+			GL_LINEAR_MIPMAP_LINEAR,
+			max_aniso
+		));
+
+		return texture;
+	}
+
+	uint32_t Renderer::GetGlTextureUnit(uint32_t textureUnit)
+	{
+		switch(textureUnit)
+		{
+			default:
+				return GL_TEXTURE0;
+		}
+	}
+
 	void Renderer::BeginFrame()
 	{
+		glClearColor(0.39f, 0.58f, 0.92f, 1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glDisable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	void Renderer::EndFrame()
@@ -161,21 +276,41 @@ namespace darkroom
 		trashedGeometry.clear();
 	}
 
-	void Renderer::Draw(GeometryHandle *geometryHandle, Effect *effect)
+	void Renderer::Draw(GeometryHandle *geometryHandle, Effect *effect, TextureHandle *texture, float *mvp)
 	{
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
 
-		mat4x4 m;
+		
 		int matrix_location = glGetUniformLocation (effect->GetProgram(), "matrix");
 		
 		glViewport(0, 0, width, height);
 		glUseProgram( effect->GetProgram() );
 	
-		mat4x4_identity(m);
+		
 	
-		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, (const GLfloat*) m);
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, (const GLfloat*) mvp);
 		glBindVertexArray(geometryHandle->GetVao());
+
+		if (texture != nullptr)
+		{
+			glActiveTexture( GetGlTextureUnit(texture->GetTextureUnit()) );
+			glBindTexture( GL_TEXTURE_2D, texture->GetTexture() );
+
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texture->GetWrapS() );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture->GetWrapT() );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture->GetMagFilter() );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture->GetMinFilter() );
+			
+			// // set the maximum!
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, texture->GetMaxAniso() );
+		} 
+		else
+		{
+			std::cout << "Couldn't bind texture" << std::endl;
+		}
+
+		
 
 		glDrawElements( GL_TRIANGLES, geometryHandle->GetNumIndices(), GL_UNSIGNED_INT, (void*)0  );
 	}

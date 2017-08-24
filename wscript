@@ -45,15 +45,21 @@ def configure(conf):
 	conf.check_cfg(package='glfw3', uselib_store='GLFW', args=['--cflags', '--libs'])
 	conf.check_cfg(package='glew', uselib_store='GLEW', args=['--cflags', '--libs'])
 	conf.check_cfg(package='freetype2', uselib_store='FT', args=['--cflags', '--libs'])
+	conf.check_cfg(package='libpng', uselib_store='PNG', args=['--cflags', '--libs'])
 	if sys.platform == 'darwin':
 		conf.env.LIBPATH_BOOST = ['/usr/local/lib']
 		conf.env.INCLUDES_BOOST = ['/usr/local/include']
+		conf.env.LIBPATH_TGA = ['/usr/local/lib']
+		conf.env.INCLUDES_TGA = ['/usr/local/include']
 	else:
 		conf.env.LIBPATH_BOOST = ['/usr/lib']
 		conf.env.INCLUDES_BOOST = ['/usr/include']
+		conf.env.LIBPATH_TGA = ['/usr/lib']
+		conf.env.INCLUDES_TGA = ['/usr/include']
 	conf.env.STLIB_ROCKET = ['RocketCore', 'RocketControls', 'RocketDebugger']
 	conf.env.STLIBPATH_ROCKET = ['/usr/local/lib64']
 	conf.env.INCLUDES_ROCKET = ['/usr/local/include']
+
 
 
 def build(bld):
@@ -66,7 +72,7 @@ def build(bld):
 				lib = libs,
 				target = 'darkroom',
 				install_path = '${BINDIR}',
-				use=['GLEW', 'GLFW', 'BOOST', 'FT', 'ROCKET'],
+				use=['GLEW', 'GLFW', 'BOOST', 'FT', 'ROCKET', 'PNG', 'TGA'],
 				defines = defines,
 				features="cxx cxxprogram")
 
