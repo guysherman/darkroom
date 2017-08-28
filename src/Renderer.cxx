@@ -150,7 +150,7 @@ namespace darkroom
 
 		glGenBuffers(1, &colBuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, colBuffer);
-		glBufferData(GL_ARRAY_BUFFER, geometryInfo.numVertices * 3 * sizeof( GLfloat ), geometryInfo.colors, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, geometryInfo.numVertices * 4 * sizeof( GLfloat ), geometryInfo.colors, GL_STATIC_DRAW);
 
 		glGenBuffers(1, &tcBuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, tcBuffer);
@@ -311,7 +311,7 @@ namespace darkroom
 		}
 
 		
-
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDrawElements( GL_TRIANGLES, geometryHandle->GetNumIndices(), GL_UNSIGNED_INT, (void*)0  );
 	}
 

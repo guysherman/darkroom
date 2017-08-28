@@ -23,7 +23,8 @@
 
 // C++ Standard Headers
 #include <string>
-#include <fstream>
+
+#include <vector>
 // C Standard Headers
 
 
@@ -43,6 +44,7 @@ namespace darkroom
 	{
 	public:
 		static std::string ReadAllText(std::string filepath);
+    static std::vector<unsigned char> ReadAllBytes(std::string filepath);
 	private:
 
 	};

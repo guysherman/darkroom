@@ -15,7 +15,7 @@ APPNAME = 'darkroom'
 
 top = '.'
 out = 'build'
-libs = ['pthread']
+libs = ['pthread', 'tga']
 linkerflags = []
 if sys.platform == 'darwin':
 	linkerflags = ['-framework', 'GLUT', '-framework', 'OpenGL']

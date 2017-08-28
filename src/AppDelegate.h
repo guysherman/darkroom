@@ -29,6 +29,7 @@
 // 3rd Party Headers
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <Rocket/Core.h>
 
 #include "linmath.h"
 // GTK Headers
@@ -65,6 +66,7 @@ namespace darkroom
 		void MousePositionEvent(GLFWwindow* window, double xpos, double ypos);
 		void ScrollEvent(GLFWwindow* window, double xoffset, double yoffset);
 		void KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
+		void TextEvent(GLFWwindow* window, unsigned int codepoint);
 
 		void Run();
 
@@ -76,6 +78,7 @@ namespace darkroom
 		std::shared_ptr<RocketGLFWRenderer> rocketRenderer;
 		std::shared_ptr<RocketGLFWSystemInterface> systemInterface;
 		std::shared_ptr<ShellFileInterface> fileInterface;
+		std::shared_ptr<Rocket::Core::Context> context;
 
 		vec2 lastMousePos;
 		vec2 lastScrollPos;

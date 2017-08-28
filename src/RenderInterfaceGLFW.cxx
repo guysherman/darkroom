@@ -23,6 +23,8 @@
 // C++ Standard Headers
 #include <iostream>
 #include <sstream>
+#include <cstddef>
+#include <cstring>
 
 // C Standard Headers
 
@@ -42,6 +44,7 @@
 #include "GeometryHandle.h"
 #include "TextureHandle.h"
 #include "pngutils.h"
+#include "TgaImage.h"
 
 namespace darkroom
 {
@@ -72,6 +75,16 @@ namespace darkroom
 		this->renderer = renderer;
 		auto eff = renderer->CreateEffect("assets/basic_vs.glsl", "assets/basic_fs.glsl");
 		effect = std::move(eff);
+
+		unsigned char pixels[] =
+		{
+			239, 233, 1, 255, 239, 233, 1, 255,
+			239, 233, 1, 255, 239, 233, 1, 255
+		};
+
+		auto tx = renderer->GenerateTexture2D(Unit0, RGBA, UBYTE, 2, 2, &pixels[0]);
+		textureHandles.insert(std::make_pair(0, std::move(tx)));
+
 	}
 
 	
@@ -249,7 +262,7 @@ namespace darkroom
 		auto it = compiledGeometryHandles.find((uint32_t)geometry);
 		if (it != compiledGeometryHandles.end())
 		{
-			std::cout << "Rendering with texture: " << it->second.get()->GetTextureHandleId() << std::endl;
+			//std::cout << "Rendering with texture: " << it->second.get()->GetTextureHandleId() << std::endl;
 			
 			auto tx = textureHandles.find(it->second.get()->GetTextureHandleId());
 			if (tx != textureHandles.end())
@@ -310,23 +323,72 @@ namespace darkroom
 	// Called by Rocket when a texture is required by the library.
 	bool RocketGLFWRenderer::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
 	{
-		// std::shared_ptr<Renderer> renderRef = renderer.lock();
-		// auto th = renderRef->GenerateTexture2D(Unit0, RGBA, UBYTE, 512, 512, &big_image[0]);
-		// uint32_t id = nextTextureId++;
+		Rocket::Core::FileInterface* file_interface = Rocket::Core::GetFileInterface();
+		Rocket::Core::FileHandle file_handle = file_interface->Open(source);
+		if (file_handle == NULL)
+			return false;
 
-		// std::cout << "Just generated texture: " << id << std::endl;
-
-		// textureHandles.insert(std::make_pair(id, std::move(th)));
+		file_interface->Seek(file_handle, 0, SEEK_END);
+		size_t buffer_size = file_interface->Tell(file_handle);
+		file_interface->Seek(file_handle, 0, SEEK_SET);
 		
-		// std::stringstream fname;
+		std::vector<unsigned char> buffer;
+		buffer.reserve(buffer_size);
+		buffer.resize(buffer_size, '\0');
+		file_interface->Read(&buffer[0], buffer_size, file_handle);
+		file_interface->Close(file_handle);
+		
+		
+		TgaImage image(buffer);
+		const unsigned char *imageData = image.GetData();
+		int imageWidth = image.GetWidth();
+		int imageHeight = image.GetHeight();
+
+		std::shared_ptr<Renderer> renderRef = renderer.lock();
+		std::unique_ptr<TextureHandle> th;
+		if (imageData != nullptr)
+		{
+			unsigned char orientation = image.GetVerticalOrientation();
+			if (orientation == 0)
+			{
+				unsigned char *flipped = (unsigned char*) malloc(sizeof(unsigned char) * imageWidth * imageHeight * 4);
+				for(int row = imageHeight - 1; row >= 0; --row)
+				{
+					size_t stride = imageWidth * 4;
+					int destRow = (imageHeight - 1) - row;
+					memcpy(&flipped[destRow * stride], &imageData[row * stride], stride);
+				}
+
+				th = renderRef->GenerateTexture2D(Unit0, RGBA, UBYTE, imageWidth, imageHeight, flipped);
+			}
+		}
+		else
+		{
+			th = renderRef->GenerateTexture2D(Unit0, RGBA, UBYTE, imageWidth, imageHeight, imageData);
+			
+		}
+		
+		uint32_t id = nextTextureId++;
+		
+
+		std::cout << "Just generated texture: " << id << std::endl;
+
+		textureHandles.insert(std::make_pair(id, std::move(th)));
+		
+		std::stringstream fname;
  
-		// fname << "out-" << id << ".png";
+		fname << "out-" << id << ".png";
 
-		//writeImage(fname.str().c_str(), 512, 512, &big_image[0], "Out");
+		writeImage(fname.str().c_str(), imageWidth, imageHeight, imageData, "Out");
 		
-		texture_handle = (Rocket::Core::TextureHandle)0;
-		texture_dimensions.x = 1;
-		texture_dimensions.y = 1;
+		texture_handle = (Rocket::Core::TextureHandle)id;
+		texture_dimensions.x = imageWidth;
+		texture_dimensions.y = imageHeight;
+
+		// texture_handle = (Rocket::Core::TextureHandle)0;
+		// texture_dimensions.x = 1;
+		// texture_dimensions.y = 1;
+
 
 		return true;
 	}

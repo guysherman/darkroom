@@ -27,7 +27,7 @@
 
 int main() {
 
-	darkroom::AppDelegate::instance = new darkroom::AppDelegate(1280, 1024);
+	darkroom::AppDelegate::instance = new darkroom::AppDelegate(1024, 768);
 
 	darkroom::AppDelegate::instance->Run();
 

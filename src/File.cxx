@@ -22,6 +22,7 @@
 // C++ Standard Headers
 #include <string>
 #include <fstream>
+
 // C Standard Headers
 
 
@@ -43,7 +44,8 @@ namespace darkroom
 
 		std::string result = "";
 		std::ifstream is (filepath, std::ifstream::binary);
-		if (is) {
+		if (is) 
+		{
 			// get length of file:
 			is.seekg (0, is.end);
 			int length = is.tellg();
@@ -55,6 +57,27 @@ namespace darkroom
 			// read data as a block:
 			is.read (&result[0],length);
 
+			is.close();
+		}
+
+		return result;
+	}
+
+	std::vector<unsigned char> File::ReadAllBytes(std::string filepath)
+	{
+		std::vector<unsigned char> result;
+		std::ifstream is(filepath, std::ifstream::binary);
+		if (is) 
+		{
+			// get length of file:
+			is.seekg (0, is.end);
+			int length = is.tellg();
+			is.seekg (0, is.beg);
+			
+			result.reserve(length);
+			result.resize(length, '\0');
+
+			is.read((char *)&result[0], length);
 			is.close();
 		}
 

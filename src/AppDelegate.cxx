@@ -31,6 +31,7 @@
 // 3rd Party Headers
 #include "linmath.h"
 #include <Rocket/Core.h>
+#include <Rocket/Controls.h>
 #include <Rocket/Core/Input.h>
 #include <Rocket/Debugger/Debugger.h>
 
@@ -94,6 +95,14 @@ namespace darkroom
 		}
 	}
 
+	static void text_callback(GLFWwindow *window, unsigned int codepoint)
+	{
+		if (nullptr != AppDelegate::instance)
+		{
+			AppDelegate::instance->TextEvent(window, codepoint);
+		}
+	}
+
 	AppDelegate::AppDelegate(int width, int height)
 	{
 		glfwSetErrorCallback(error_callback);
@@ -121,6 +130,7 @@ namespace darkroom
 		glfwSetMouseButtonCallback(window, mouse_button_callback);
 		glfwSetCursorPosCallback(window, cursor_position_callback);
 		glfwSetScrollCallback(window, scroll_callback);
+		glfwSetCharCallback(window, text_callback);
 
 		renderer = std::shared_ptr<Renderer>(new Renderer(window));
 		renderer->Init();
@@ -151,6 +161,24 @@ namespace darkroom
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		{
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
+			return;
+		}
+
+		if (context)
+		{
+			switch(action)
+			{
+				case GLFW_PRESS:
+					context->ProcessKeyDown(systemInterface->TranslateKey(key), systemInterface->GetKeyModifiers(window));
+					break;
+				case GLFW_RELEASE:
+					if (key == GLFW_KEY_F8)
+					{
+						Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
+					}
+					context->ProcessKeyUp(systemInterface->TranslateKey(key), systemInterface->GetKeyModifiers(window));
+					break;
+			}
 		}
 
 	}
@@ -160,11 +188,32 @@ namespace darkroom
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 
+		if (context)
+		{
+			switch (action)
+			{
+				case GLFW_PRESS:
+					context->ProcessMouseButtonDown(button, systemInterface->GetKeyModifiers(window));
+					break;
+				case GLFW_RELEASE:
+					context->ProcessMouseButtonUp(button, systemInterface->GetKeyModifiers(window));
+					break;
+			}
+		
+		}
+		
+
 	}
 
 	void AppDelegate::MousePositionEvent(GLFWwindow *window, double xpos, double ypos)
 	{
 		// vec2 to = {(float)xpos, (float)ypos};
+
+		if (context)
+		{
+			context->ProcessMouseMove(xpos, ypos, systemInterface->GetKeyModifiers(window));
+		}
+		
 
 		lastMousePos[0] = xpos;
 		lastMousePos[1] = ypos;
@@ -174,8 +223,22 @@ namespace darkroom
 	{
 		// vec2 to = {(float)xoffset * SCROLL_SENSITIVITY, (float)yoffset * SCROLL_SENSITIVITY};
 
+		if(context)
+		{
+			context->ProcessMouseWheel(-yoffset,
+					systemInterface->GetKeyModifiers(window));
+		}
+
 		lastScrollPos[0] = xoffset;
 		lastScrollPos[1] = yoffset;
+	}
+
+	void AppDelegate::TextEvent(GLFWwindow *window, unsigned int codepoint)
+	{
+		if (context)
+		{
+			context->ProcessTextInput(codepoint);
+		}
 	}
 
 	void AppDelegate::Run()
@@ -183,77 +246,79 @@ namespace darkroom
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
 		
-		float points[] = 
-		{
-			  0.0f,  100.0f,
-			100.0f,  100.0f, 
-			100.0f,    0.0f,
-			  0.0f,    0.0f
-		};
+		// float points[] = 
+		// {
+		// 	  0.0f,  100.0f,
+		// 	100.0f,  100.0f, 
+		// 	100.0f,    0.0f,
+		// 	  0.0f,    0.0f
+		// };
 
-		float colors[] = 
-		{
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f
-		};
+		// float colors[] = 
+		// {
+		// 	1.0f, 1.0f, 1.0f, 1.0f,
+		// 	1.0f, 1.0f, 1.0f, 1.0f,
+		// 	1.0f, 1.0f, 1.0f, 1.0f,
+		// 	1.0f, 1.0f, 1.0f, 1.0f
+		// };
 
-		float texCoords[] = 
-		{
-			0.0f, 0.0f,
-			1.0f, 0.0f,
-			1.0f, 1.0f,
-			0.0f, 1.0f
-		};
+		// float texCoords[] = 
+		// {
+		// 	0.0f, 0.0f,
+		// 	1.0f, 0.0f,
+		// 	1.0f, 1.0f,
+		// 	0.0f, 1.0f
+		// };
 
-		uint32_t indices[] = 
-		{
-			0, 3, 2,
-			0, 2, 1
-		};
+		// uint32_t indices[] = 
+		// {
+		// 	0, 3, 2,
+		// 	0, 2, 1
+		// };
 
-		unsigned char pixels[] =
-		{
-			255, 255, 255, 0, 255, 255, 255, 255,
-			255, 255, 255, 255, 255, 255, 255, 0
-		};
+		// unsigned char pixels[] =
+		// {
+		// 	255, 255, 255, 0, 255, 255, 255, 255,
+		// 	255, 255, 255, 255, 255, 255, 255, 0
+		// };
 
 
-		GeometryInfo gi;
-		gi.positions = &points[0];
-		gi.colors = &colors[0];
-		gi.texCoords = &texCoords[0];
-		gi.indices = &indices[0];
-		gi.numVertices = 4;
-		gi.numIndices = 6;
+		// GeometryInfo gi;
+		// gi.positions = &points[0];
+		// gi.colors = &colors[0];
+		// gi.texCoords = &texCoords[0];
+		// gi.indices = &indices[0];
+		// gi.numVertices = 4;
+		// gi.numIndices = 6;
 
 		
-		auto tx = renderer->GenerateTexture2D(Unit0, RGBA, UBYTE, 2, 2, &pixels[0]);
+		// auto tx = renderer->GenerateTexture2D(Unit0, RGBA, UBYTE, 2, 2, &pixels[0]);
 
-		auto gh = renderer->CreateGeometryHandle(gi);
-		auto gh2 = renderer->CreateGeometryHandle(gi);
-		auto gh3 = renderer->CreateGeometryHandle(gi);
-		auto gh4 = renderer->CreateGeometryHandle(gi);
+		// auto gh = renderer->CreateGeometryHandle(gi);
+		// auto gh2 = renderer->CreateGeometryHandle(gi);
+		// auto gh3 = renderer->CreateGeometryHandle(gi);
+		// auto gh4 = renderer->CreateGeometryHandle(gi);
 
-		auto effect = renderer->CreateEffect("assets/basic_vs.glsl", "assets/basic_fs.glsl");
+		// auto effect = renderer->CreateEffect("assets/basic_vs.glsl", "assets/basic_fs.glsl");
 		
 		if(!Rocket::Core::Initialise())
 		{
 			return;
 		}
 
+		Rocket::Controls::Initialise();
+
 		Rocket::Core::FontDatabase::LoadFontFace("Delicious-Bold.otf");
 		Rocket::Core::FontDatabase::LoadFontFace("Delicious-BoldItalic.otf");
 		Rocket::Core::FontDatabase::LoadFontFace("Delicious-Italic.otf");
 		Rocket::Core::FontDatabase::LoadFontFace("Delicious-Roman.otf");
 
-		Rocket::Core::Context *Context = Rocket::Core::CreateContext("default",
-		Rocket::Core::Vector2i(width, height));
+		context = std::shared_ptr<Rocket::Core::Context>(Rocket::Core::CreateContext("default",
+		Rocket::Core::Vector2i(width, height)));
 
-		Rocket::Debugger::Initialise(Context);
+		Rocket::Debugger::Initialise(context.get());
 
-		Rocket::Core::ElementDocument *Document = Context->LoadDocument("demo.rml");
+		Rocket::Core::ElementDocument *Document = context->LoadDocument("demo.rml");
 
 		if(Document)
 		{
@@ -272,38 +337,38 @@ namespace darkroom
 			glfwGetFramebufferSize(window, &width, &height);
 
 			
-			mat4x4 m;
-			mat4x4 p;
-			mat4x4 mvp;
+			// mat4x4 m;
+			// mat4x4 p;
+			// mat4x4 mvp;
 			
 			
 
 
 			renderer->BeginFrame();
 
-			mat4x4_identity(m);
-			mat4x4_translate(m, 100.0f, 100.0f, 0.0f);
-			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
-			mat4x4_mul(mvp, p, m);
-			renderer->Draw(gh.get(), effect.get(), tx.get(), (float *)mvp);
-			mat4x4_identity(m);
-			mat4x4_translate(m, 400.0f, 100.0f, 0.0f);
-			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
-			mat4x4_mul(mvp, p, m);
-			renderer->Draw(gh2.get(), effect.get(), tx.get(), (float *)mvp);
-			mat4x4_identity(m);
-			mat4x4_translate(m, 800.0f, 100.0f, 0.0f);
-			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
-			mat4x4_mul(mvp, p, m);
-			renderer->Draw(gh3.get(), effect.get(), tx.get(), (float *)mvp);
-			mat4x4_identity(m);
-			mat4x4_translate(m, 1200.0f, 100.0f, 0.0f);
-			mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
-			mat4x4_mul(mvp, p, m);
-			renderer->Draw(gh4.get(), effect.get(), tx.get(), (float *)mvp);
+			// mat4x4_identity(m);
+			// mat4x4_translate(m, 100.0f, 100.0f, 0.0f);
+			// mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			// mat4x4_mul(mvp, p, m);
+			// renderer->Draw(gh.get(), effect.get(), tx.get(), (float *)mvp);
+			// mat4x4_identity(m);
+			// mat4x4_translate(m, 400.0f, 100.0f, 0.0f);
+			// mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			// mat4x4_mul(mvp, p, m);
+			// renderer->Draw(gh2.get(), effect.get(), tx.get(), (float *)mvp);
+			// mat4x4_identity(m);
+			// mat4x4_translate(m, 800.0f, 100.0f, 0.0f);
+			// mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			// mat4x4_mul(mvp, p, m);
+			// renderer->Draw(gh3.get(), effect.get(), tx.get(), (float *)mvp);
+			// mat4x4_identity(m);
+			// mat4x4_translate(m, 1200.0f, 100.0f, 0.0f);
+			// mat4x4_ortho(p, 0, width, height, 0, 0, 1000);
+			// mat4x4_mul(mvp, p, m);
+			// renderer->Draw(gh4.get(), effect.get(), tx.get(), (float *)mvp);
 
 
-			Context->Render();
+			context->Render();
 		
 			glfwWaitEventsTimeout(0.016);
 			renderer->EndFrame();
